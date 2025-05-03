@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+
+# Environment variables
+.env
+
+# Credentials
+credentials/*.json
+
+# Build output
+__build__/
+dist/
+
+# IDE and Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# SQLite (if used temporarily)
+*.db
+
+# macOS
+.DS_Store
