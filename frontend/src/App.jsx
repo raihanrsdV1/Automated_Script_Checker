@@ -30,7 +30,7 @@ function App() {
   };
 
   const token = localStorage.getItem("token");
-  const auth = Boolean(token);
+  const auth = true;
 
   return (
     <Router>
