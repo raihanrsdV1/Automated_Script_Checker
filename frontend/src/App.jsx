@@ -1,11 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+
 import CommonLayout from './components/ui/common-layout';
 import Login from './pages/login';
 import Register from './pages/register';
 import UserDashboard from './pages/user-dashboard';
-import RecheckerDashboard from './pages/rechecker-dashboard';
+import Submission from './pages/submission';
 import QuestionRubricSetup from './pages/question-rubric-setup';
 import Auth from './pages/auth/index.jsx';
 import { ToastContainer, toast } from "react-toastify";
@@ -53,7 +52,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/user-dashboard" element={<UserDashboard />} />
-              <Route path="/rechecker-dashboard" element={<RecheckerDashboard />} />
+              <Route path="/submission" element={<Submission />} />
               <Route path="/question-rubric-setup" element={<QuestionRubricSetup />} />
               <Route path="/student-reports" element={<Test />} />
               <Route path="/test" element={<Test />} />
