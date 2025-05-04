@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; // Using axios for API calls
 
-const API_BASE_URL = 'http://localhost:3031/api'; // Adjust if your backend runs elsewhere
+const API_BASE_URL = 'http://localhost:8000/api'; // Adjust if your backend runs elsewhere
 
 function Test() {
   const [testValues, setTestValues] = useState([]);

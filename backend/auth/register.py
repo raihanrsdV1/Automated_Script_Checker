@@ -18,6 +18,7 @@ class RegisterRequest(BaseModel):
 @router.post("/register")
 async def register(req: RegisterRequest):
     conn = connect()
+    print("######################### something wrong #####################")
     cur = conn.cursor()
     password_hash = bcrypt.hashpw(req.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     try:

@@ -1,0 +1,131 @@
+
+
+.main-container{
+    height: 40px;
+    background-color: #25272f;
+    border-bottom: 1px solid #5b5e6c;
+    display: flex;
+    flex-direction: row;
+    padding: 13px 56px;
+    gap: 40px;
+    align-items: center;
+    justify-content: space-between
+}
+
+.logo-container{
+    display: flex; 
+    flex-direction: row; 
+    gap: 6px; 
+    align-items: center
+}
+
+.brain-logo{
+    width: 32px; 
+    height: 32px
+}
+
+.brainlytic{
+    font-size: 20px;
+    font-weight: 600;
+    margin-left: 6px;
+    color: white;
+}
+
+.menu-item-container{
+    display: flex; 
+    flex-direction: row; 
+    gap: 16px; 
+    flex: 1;
+    justify-content: center 
+}
+
+.right-section-div{
+    display: flex; 
+    flex-direction: row; 
+    gap: 16px; 
+    align-items: center
+}
+
+.notification-div{
+    width: 20px; 
+    height: 20px; 
+    background-color: #5b5e6c;
+    border-radius: 20px;
+    padding: 5px;
+    position: relative;
+    cursor: pointer
+}
+
+.notification-inner-div{
+    width: 8px;
+    height: 8px;
+    background-color: #16a657;
+    border-radius: 50%;
+    border: 1px solid #25272f;
+    position: absolute;
+    right: 0;
+    top: 0
+}
+
+.user-profile-div{
+    display: flex; 
+    flex-direction: row; 
+    gap: 8px; 
+    align-items: center; 
+    cursor: pointer
+}
+
+.user-profile-pic{
+     width: 28px; 
+     height: 28px; 
+     border-radius: 50%
+}
+
+.user-name{
+    font-family: Archivo, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #9096a9
+}
+
+.down-arrow{
+    width: 14px;
+    height: 14px;
+    transition: transform 0.3s ease;
+}
+
+.menu-item-div{
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    align-items: center;
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+    cursor: pointer !important;
+}
+
+
+
+.menu-item-div.active{
+    background-color: #ffffff26;
+}
+
+.menu-item-div:hover{
+    background-color: #ffffff26;
+}
+
+.main-item-div.active span {
+    color: #fff;
+  }
+
+.menu-item-div span{
+    font-family: Archivo, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #9096a9;
+}

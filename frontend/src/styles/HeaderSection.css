@@ -1,0 +1,76 @@
+.header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 582px;
+    margin: 0 auto;
+    gap: 24px;
+    background-color: #fdf4e3;
+    padding: 20px;
+  }
+  
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+  }
+  
+  .brand-container {
+    padding-top: 4px;
+  }
+  
+  .brand-writing{
+    font-size: 20px;
+    font-weight: 600;
+    margin-left: 6px;
+    color: #16a657;
+  }
+  
+  .content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 29px;
+    line-height: 46px;
+    color: #25272f;
+    margin: 0;
+  }
+  
+  .description {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 26px;
+    color: #5b5e6c;
+    margin-left: 96px;
+    position: absolute;
+  }
+  
+  .description-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: white;
+    text-align: center;
+  }
