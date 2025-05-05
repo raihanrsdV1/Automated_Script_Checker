@@ -10,3 +10,10 @@ bcrypt>=4.0.0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 python-multipart>=0.0.7 # Added for form data/file uploads
+pdf2image # For converting PDF pages to images
+Pillow>=10.0.0 # For image processing
+poppler-utils>=23.0.0 # Required by pdf2image for PDF rendering
+requests>=2.31.0 # For HTTP requests
+aiofiles>=23.2.1 # For async file operations
+asyncio>=3.4.3 # For asynchronous programming
+logging>=0.4.9.6 # For improved logging

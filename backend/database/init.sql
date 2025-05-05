@@ -114,14 +114,15 @@ CREATE TABLE evaluation_detail (
 CREATE TABLE submission (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     student_id UUID NOT NULL REFERENCES "user"(id),
-    question_set_id UUID NOT NULL REFERENCES question_set(id),
-    pdf_link TEXT NOT NULL,
+    question_id UUID NOT NULL REFERENCES question(id),
+    question_set_id UUID REFERENCES question_set(id),
+    solution_pdf_url TEXT NOT NULL,
     solution_text TEXT,
+    evaluated BOOLEAN DEFAULT FALSE,
+    result NUMERIC DEFAULT 0,
+    feedback TEXT,
     evaluation_id UUID REFERENCES evaluated_script(id),
-    is_evaluated BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    -- Removed CONSTRAINT check_student_role CHECK (...) as it's not supported with subqueries
-    -- This check should be handled in the application layer (e.g., in submissions/submit.py)
 );
 
 -- Create Recheck table
@@ -132,8 +133,6 @@ CREATE TABLE "recheck" (
     response_detail TEXT,
     responser_id UUID REFERENCES "user"(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    -- Removed CONSTRAINT check_responser_role CHECK (...) as it's not supported with subqueries
-    -- This check should be handled in the application layer (e.g., in submissions/recheck.py using require_role)
 );
 
 -- Create Test Table
