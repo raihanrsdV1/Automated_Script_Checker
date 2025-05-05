@@ -98,6 +98,8 @@ CREATE TABLE "recheck" (
     -- This check should be handled in the application layer (e.g., in submissions/recheck.py using require_role)
 );
 
+
+
 -- Create Test Table
 CREATE TABLE IF NOT EXISTS test_table (
     id SERIAL PRIMARY KEY,
