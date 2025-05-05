@@ -1,0 +1,19 @@
+.sp-container { max-width:1200px; width:80%; margin:auto; padding:20px; }
+.sp-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.sp-search { padding:6px 10px; border:1px solid #ccc; border-radius:4px; width:200px; }
+.sp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.sp-card { background:#f0f8ff; padding:16px; border-radius:8px; cursor:pointer; transition:box-shadow .3s; }
+.sp-card:hover { box-shadow:0 4px 8px rgba(0,0,0,0.1); }
+.sp-name { font-weight:600; margin-bottom:8px; }
+.sp-date { font-size:12px; color:#555; margin-bottom:8px; }
+.sp-status { padding:4px 8px; border-radius:4px; font-size:12px; }
+.sp-status.done { background:#d4edda; color:#155724; }
+.sp-status.pending { background:#f8d7da; color:#721c24; }
+
+.sp-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; }
+.sp-dialog { background:#fff; padding:24px; border-radius:8px; width:600px; max-height:90vh; overflow-y:auto; position:relative; }
+.sp-close { position:absolute; top:8px; right:12px; background:none; border:none; font-size:24px; cursor:pointer; }
+.sp-questions-list { margin:16px 0; }
+.sp-question-item { margin-bottom:12px; }
+.sp-combined-upload { margin-bottom:16px; }
+.sp-combined-upload label { display:block; margin-bottom:4px; }

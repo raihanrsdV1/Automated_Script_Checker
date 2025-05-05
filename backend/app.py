@@ -28,7 +28,7 @@ origins = [
     "http://localhost",
     "http://localhost:5173", # Default Vite port
     "http://localhost:3031", # Add the actual frontend origin from the error message
-    "http://localhost:3000", # Allow backend itself (if needed)
+    "http://localhost:3030", # Allow backend itself (if needed)
     # Add your deployed frontend URL here if applicable
 ]
 

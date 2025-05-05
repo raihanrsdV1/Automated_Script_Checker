@@ -9,7 +9,7 @@ import profile_new from "../../../assets/profile_new.svg";
 
 const getActiveMenuItem = (pathname) => {
   if (pathname.includes('/user-dashboard')) return 'Dashboard';
-  if (pathname.includes('/rechecker-dashboard')) return 'Rechecker';
+  if (pathname.includes('/submission')) return 'Submission';
   if (pathname.includes('/student-reports')) return 'Reports';
   if (pathname.includes('/question-rubric-setup')) return 'Rubrics';
   if (pathname.includes('/result-generator')) return 'Result';
@@ -25,7 +25,7 @@ const getMenuIcon = (text) => {
       return <Puzzle size={20} color="#bbbbbb" />;
     case 'Result':
       return <ChartNoAxesCombined size={20} color="#bbbbbb" />;
-    case 'Rechecker':
+    case 'Submission':
       return <Video size={20} color="#bbbbbb" />;
     case 'Reports':
       return <NotebookText size={20} color="#bbbbbb" />;
@@ -52,7 +52,7 @@ const PrimaryNav = ({ profile }) => {
 
   const menuItems = [
     { text: "Dashboard", link: "/user-dashboard" },
-    { text: "Rechecker", link: "/lang/en/level/1/topic/all" },
+    { text: "Submission", link: "/submission" },
     { text: "Test", link: "/test" },
     { text: "Reports", link: "/student-reports" },
     { text: "Rubrics", link: "/question-rubric-setup" },

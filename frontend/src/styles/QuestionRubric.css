@@ -223,8 +223,10 @@
   max-height: 3.2em;
 }
 
-.qr-dialog-content, .qr-form-preview {
+
+.qr-form-preview {
   white-space: normal;
+  position: relative;
   overflow: auto;
   padding: 8px;
   border: 1px solid #eee;
@@ -327,6 +329,7 @@
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
 }
 
 .qr-dialog-header {
