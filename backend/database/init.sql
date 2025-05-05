@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS subject CASCADE;
 DROP TABLE IF EXISTS "user" CASCADE;
 DROP TABLE IF EXISTS test_table CASCADE; -- Added drop for test_table
 
+
 -- Create User table
 CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

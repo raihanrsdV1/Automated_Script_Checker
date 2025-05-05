@@ -3,59 +3,52 @@ import '../../../styles/RegForm.css';
 import google from "../../../assets/google-icon.svg"
 import fb from "../../../assets/facebook-icon.svg"
 import { Eye, EyeOff, Mail} from 'lucide-react';
-// import GoogleLogin from "react-google-login";
 import { useNavigate } from 'react-router-dom';
-
-// import {googleAuth, login} from "../../../action/auth";
-import {showToast2} from "../../../App.jsx" ;
+import { showToast2 } from "../../../App.jsx";
 import { login as apiLogin } from "../../../api/auth.js";
 
-
 const LoginForm = ({ onSubmit }) => {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-    const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     window.scrollTo(0, 0);
-}, []);
+  }, []);
 
-
-const loginClick = async () => {
-  if (!email || !password) {
-    showToast2("Please enter valid login and password", "error");
-    return;
-  }
-  try {
-    const { token, user_id, role } = await apiLogin({
-      username: email,     // or req expects `username`
-      password,
-    });
-    // store token however you prefer:
-    localStorage.setItem("token", token);
-    // maybe store user_id/role too…
-    localStorage.setItem("user_id", user_id);
-    localStorage.setItem("role", role);
-    showToast2("Logged in!", "success");
-    navigate("/user-dashboard");
-  } catch (err) {
-    showToast2(err.message, "error");
-  }
-};
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSubmit) {
-      onSubmit({ email, password });
+  const loginClick = async () => {
+    if (!email || !password) {
+      showToast2("Please enter valid email and password", "error");
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const { token, user_id, role } = await apiLogin({
+        username: email,
+        password,
+      });
+      
+      // Store authentication data in localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user_id", user_id);
+      localStorage.setItem("role", role);
+      
+      showToast2("Successfully logged in!", "success");
+      navigate("/user-dashboard");
+    } catch (err) {
+      showToast2(err.message || "Login failed, please try again", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-    // const googleAuthComplete=res=>{
-    //     //console.log(res)
-    //     if(res.accessToken!=undefined) {
-    //         googleAuth({access_token: res.accessToken}, dispatch,history,'login')
-    //     }
-    // }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    loginClick();
+  };
 
   return (
     <div className="login-form">
@@ -65,27 +58,11 @@ const loginClick = async () => {
       </div>
 
       <div className="social-buttons">
-        {/* <GoogleLogin
-          clientId="758809470086-3k19svqvd9nnkm89h8ck3ig6clj7qoq4.apps.googleusercontent.com"
-          render={renderProps => (
-            <button 
-              onClick={renderProps.onClick} 
-              disabled={renderProps.disabled} 
-              className="social-button google"
-            >
-              <img src={google} alt="Google" className="social-icon" />
-              <span>Sign in with Google</span>
-            </button>
-          )}
-          onSuccess={googleAuthComplete}
-          onFailure={googleAuthComplete}
-          cookiePolicy={'single_host_origin'}
-        /> */}
-        <button className="social-button google">
-          <img src={google} alt="Facebook" className="social-icon" />
+        <button className="social-button google" disabled>
+          <img src={google} alt="Google" className="social-icon" />
           <span>Sign in with Google</span>
         </button>
-        <button className="social-button facebook">
+        <button className="social-button facebook" disabled>
           <img src={fb} alt="Facebook" className="social-icon" />
           <span>Sign in with Facebook</span>
         </button>
@@ -123,7 +100,8 @@ const loginClick = async () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             {
-              showPassword?<Eye onClick={() => setShowPassword(!showPassword)} className='field-icon clickable' color="#aaaaaa" />:
+              showPassword ? 
+                <Eye onClick={() => setShowPassword(!showPassword)} className='field-icon clickable' color="#aaaaaa" /> :
                 <EyeOff onClick={() => setShowPassword(!showPassword)} className='field-icon clickable' color="#aaaaaa" />
             }
           </div>
@@ -133,8 +111,12 @@ const loginClick = async () => {
           Forgot Password?
         </button>
         
-        <button type="submit" className="sign-in-button" onClick={loginClick}>
-          Sign In
+        <button 
+          type="submit" 
+          className="sign-in-button" 
+          disabled={loading}
+        >
+          {loading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
 

@@ -1,121 +1,98 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../../styles/LoginForm.css';
 import google from "../../../assets/google-icon.svg"
 import fb from "../../../assets/facebook-icon.svg"
 import { Eye, EyeOff, Mail} from 'lucide-react';
-// import {register} from "../../../action/auth";
-import {showToast2} from "../../../App";
-// import {googleAuth} from "../../../action/auth";
+import { showToast2 } from "../../../App";
 import { register as apiRegister } from "../../../api/auth"; 
-
-// import GoogleLogin from "react-google-login";
 import { useNavigate } from 'react-router-dom';
 
 const RegForm = () => {
-
-
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
-  const [role, setRole]         = useState("student");
+  const [role, setRole] = useState("student");
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
-    const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-}, []);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) {
-      onSubmit({ email, password });
-    }
+    regClick();
   };
-//    const googleAuthComplete=res=>{
-//       //console.log(res)
-//       if(res.accessToken!=undefined) {
-//           googleAuth({access_token: res.accessToken}, dispatch,history,'signup')
-//       }
-//   }
-  
 
-  const regClick=async()=>{
-
+  const regClick = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(email.length===0 || password.length===0 || password2.length===0)
-      showToast('Please fill up the fields properly...')
-    else if(!emailRegex.test(email)) {
-      showToast('Please enter a valid email address')
+    
+    // Form validation
+    if (!firstName || !lastName || !email || !password || !password2) {
+      showToast2('Please fill all required fields', 'error');
+      return;
     }
-    else{
-      if(password!==password2)
-        showToast('Please re-enter the password correctly')
-      else{
-        // register({
+    
+    if (!emailRegex.test(email)) {
+      showToast2('Please enter a valid email address', 'error');
+      return;
+    }
+    
+    if (password !== password2) {
+      showToast2('Passwords do not match', 'error');
+      return;
+    }
+    
+    if (password.length < 6) {
+      showToast2('Password must be at least 6 characters', 'error');
+      return;
+    }
+
+    try {
+      setLoading(true);
       
-        //   email:email,
-        //   password:password
-        // },dispatch,history,onRegisterSuccess)
-
-        // register logic here
-
-        // build payload with dummy data
-    const payload = {
-        first_name: `User${Math.floor(Math.random()*1000)}`,
-        last_name:  `Demo${Math.floor(Math.random()*1000)}`,
-        date_of_birth: "2000-01-01",
-        username:   `user_${Date.now()}`,
+      // Create registration payload
+      const payload = {
+        first_name: firstName,
+        last_name: lastName,
+        date_of_birth: "2000-01-01", // Default date for now
+        username: email, // Using email as username
         email,
-        phone:      "",
+        phone: "",
         password,
         role,
       };
-  
-      try {
-        const { message } = await apiRegister(payload);
-        showToast2(message, "success");
-        navigate("/auth/login");
-      } catch (err) {
-        showToast2(err.message, "error");
-      }
-        
-      }
+    
+      const { message } = await apiRegister(payload);
+      showToast2(message, "success");
+      navigate("/auth/login");
+    } catch (err) {
+      showToast2(err.message || "Registration failed", "error");
+    } finally {
+      setLoading(false);
     }
-}
+  };
+
   return (
     <div className="login-form">
       <div className="login-header">
-        <h1>Hello Learner</h1>
-        <p style={{width:"400px"}}>Let's login to your account and continue learning.</p>
+        <h1>Create Account</h1>
+        <p style={{width:"400px"}}>Join us and start your learning journey today.</p>
       </div>
 
       <div className="social-buttons">
-      {/* <GoogleLogin
-          clientId="758809470086-3k19svqvd9nnkm89h8ck3ig6clj7qoq4.apps.googleusercontent.com"
-          render={renderProps => (
-            <button 
-              onClick={renderProps.onClick} 
-              disabled={renderProps.disabled} 
-              className="social-button google"
-            >
-              <img src={google} alt="Google" className="social-icon" />
-              <span>Sign up with Google</span>
-            </button>
-          )}
-          onSuccess={googleAuthComplete}
-          onFailure={googleAuthComplete}
-          cookiePolicy={'single_host_origin'}
-        /> */}
-         <button className="social-button google">
+        <button className="social-button google" disabled>
           <img src={google} alt="Google" className="social-icon" />
           <span>Sign up with Google</span>
         </button>
-        <button className="social-button facebook">
+        <button className="social-button facebook" disabled>
           <img src={fb} alt="Facebook" className="social-icon" />
           <span>Sign up with Facebook</span>
         </button>
-       
       </div>
 
       <div className="divider">
@@ -125,6 +102,31 @@ const RegForm = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="login-form-fields">
+        <div className="input-group">
+          <label htmlFor="firstName">First Name</label>
+          <div className="input-field">
+            <input
+              id="firstName"
+              type="text"
+              placeholder="John"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+        </div>
+        
+        <div className="input-group">
+          <label htmlFor="lastName">Last Name</label>
+          <div className="input-field">
+            <input
+              id="lastName"
+              type="text"
+              placeholder="Doe"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </div>
+        </div>
       
         <div className="input-group">
           <label htmlFor="email">Email Address</label>
@@ -151,34 +153,36 @@ const RegForm = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             {
-              showPassword?<Eye onClick={() => setShowPassword(!showPassword)} className='field-icon clickable' color="#aaaaaa" />:
+              showPassword ?
+                <Eye onClick={() => setShowPassword(!showPassword)} className='field-icon clickable' color="#aaaaaa" /> :
                 <EyeOff onClick={() => setShowPassword(!showPassword)} className='field-icon clickable' color="#aaaaaa" />
             }
-            
           </div>
         </div>
+
         <div className="input-group">
-          <label htmlFor="Confirm_password">Confirm Password</label>
+          <label htmlFor="confirmPassword">Confirm Password</label>
           <div className="input-field">
             <input
-              id="re-password"
+              id="confirmPassword"
               type={showPassword2 ? "text" : "password"}
               placeholder="*************"
               value={password2}
               onChange={(e) => setPassword2(e.target.value)}
             />
             {
-              showPassword2?<Eye onClick={() => setShowPassword2(!showPassword2)} className='field-icon clickable' color="#aaaaaa" />:
+              showPassword2 ?
+                <Eye onClick={() => setShowPassword2(!showPassword2)} className='field-icon clickable' color="#aaaaaa" /> :
                 <EyeOff onClick={() => setShowPassword2(!showPassword2)} className='field-icon clickable' color="#aaaaaa" />
             }
-            
           </div>
         </div>
 
         <div className="input-group">
-          <label>Role</label>
+          <label htmlFor="role">User Role</label>
           <div className="input-field">
             <select
+              id="role"
               value={role}
               onChange={e => setRole(e.target.value)}
             >
@@ -188,8 +192,12 @@ const RegForm = () => {
           </div>
         </div>
 
-        <button type="submit" className="sign-in-button" onClick={regClick}>
-          Sign Up
+        <button 
+          type="submit" 
+          className="sign-in-button"
+          disabled={loading}
+        >
+          {loading ? 'Creating Account...' : 'Sign Up'}
         </button>
       </form>
 
@@ -199,15 +207,6 @@ const RegForm = () => {
       </div>
     </div>
   );
-};
-
-RegForm.defaultProps = {
-  onSubmit: () => {},
-  initialEmail: '',
-  initialPassword: '',
-  allowSocialLogin: true,
-  allowPasswordReset: true,
-  allowSignUp: true
 };
 
 export default RegForm;

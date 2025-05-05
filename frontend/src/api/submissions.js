@@ -4,6 +4,24 @@ import { API_CONFIG } from '../config';
 
 const API_URL = API_CONFIG.BASE_URL;
 
+// Set up axios interceptor to add auth token
+axios.interceptors.request.use(
+  config => {
+    // Get the real token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Add Authorization header to all API requests if token exists
+    if (token && config.url && config.url.includes('/api/')) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
+
 // Fetch all submissions for the current user
 export const fetchUserSubmissions = async () => {
   try {

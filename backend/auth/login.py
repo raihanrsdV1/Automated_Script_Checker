@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import bcrypt, jwt, os, datetime
 from database.db_connection import connect
+from utils.auth import get_current_user
 
 router = APIRouter()
 
@@ -32,3 +33,29 @@ async def login(req: LoginRequest):
     }
     token = jwt.encode(payload, secret, algorithm=alg)
     return {"token": token, "user_id": user_id, "role": role}
+
+@router.get("/me")
+async def get_user_info(user = Depends(get_current_user)):
+    """
+    Get current user information based on JWT token
+    """
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute(
+        '''SELECT first_name, last_name, username, email, role FROM "user" WHERE id = %s''',
+        (user['user_id'],)
+    )
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    first_name, last_name, username, email, role = row
+    
+    return {
+        "user_id": user['user_id'],
+        "first_name": first_name,
+        "last_name": last_name,
+        "username": username,
+        "email": email,
+        "role": role
+    }

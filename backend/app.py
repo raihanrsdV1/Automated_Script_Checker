@@ -2,6 +2,7 @@ import os
 import logging # Add logging import
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
 # Import routers and utilities
@@ -13,6 +14,7 @@ from database.db_connection import connect # Fix import to use connect instead o
 # from utils.auth import verify_token # Commented out as auth is disabled for now
 from utils.error_handler import http_exception_handler
 from utils.logging_middleware import LoggingMiddleware # Import the new middleware
+from utils import firebase_diagnostics # Import Firebase diagnostics module
 
 # Load environment variables
 load_dotenv()
@@ -46,6 +48,12 @@ app.add_middleware(LoggingMiddleware)
 # Add custom exception handler
 app.add_exception_handler(HTTPException, http_exception_handler)
 
+# Mount static files directory for serving locally stored files
+temp_storage_dir = os.getenv('TEMP_STORAGE_DIR', 'temp_storage')
+temp_storage_path = os.path.join(os.path.dirname(__file__), temp_storage_dir)
+os.makedirs(temp_storage_path, exist_ok=True)
+app.mount("/static", StaticFiles(directory=temp_storage_path), name="static")
+
 # --- API Routes --- #
 
 # Authentication Routes
@@ -66,6 +74,9 @@ app.include_router(subjects_router, prefix="/api", tags=["Subjects"]) #, depende
 app.include_router(submit_s.router, prefix="/api/submissions", tags=["Submissions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(retrieve_s.router, prefix="/api/submissions", tags=["Submissions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(recheck_s.router, prefix="/api/submissions", tags=["Submissions"]) #, dependencies=[Depends(verify_token)])
+
+# Firebase Diagnostics Routes
+app.include_router(firebase_diagnostics.router, prefix="/api/diagnostics", tags=["Diagnostics"])
 
 # --- Simple Test Route --- #
 @app.get("/api/test")
