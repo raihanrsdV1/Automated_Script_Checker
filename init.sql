@@ -2,9 +2,12 @@
 -- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Drop tables in reverse dependency order to avoid foreign key conflicts
-DROP TABLE IF EXISTS recheck CASCADE;
+DROP TABLE IF EXISTS "recheck" CASCADE;
+DROP TABLE IF EXISTS evaluation_detail CASCADE; -- New table for detailed question evaluations
 DROP TABLE IF EXISTS submission CASCADE;
 DROP TABLE IF EXISTS evaluated_script CASCADE;
+DROP TABLE IF EXISTS question_set_mapping CASCADE; -- New table for question set mappings
+DROP TABLE IF EXISTS question_set CASCADE; -- New table for question sets
 DROP TABLE IF EXISTS question CASCADE;
 DROP TABLE IF EXISTS student CASCADE;
 DROP TABLE IF EXISTS teacher CASCADE;
@@ -65,45 +68,70 @@ CREATE TABLE question (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     subject_id UUID NOT NULL REFERENCES subject(id),
     question_text TEXT NOT NULL,
-    question_rubric TEXT NOT NULL
+    question_rubric TEXT NOT NULL,
+    marks NUMERIC NOT NULL
+);
+
+-- Create Question Set table
+CREATE TABLE question_set (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    description TEXT,
+    subject_id UUID NOT NULL REFERENCES subject(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create Question Set Mapping table
+CREATE TABLE question_set_mapping (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    question_set_id UUID NOT NULL REFERENCES question_set(id) ON DELETE CASCADE,
+    question_id UUID NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    question_order INT NOT NULL,
+    UNIQUE(question_set_id, question_id)
 );
 
 -- Create Evaluated Script table
 CREATE TABLE evaluated_script (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     result NUMERIC NOT NULL,
-    detailed_result TEXT NOT NULL
+    detailed_result TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create Evaluation Detail table
+CREATE TABLE evaluation_detail (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    evaluation_id UUID NOT NULL REFERENCES evaluated_script(id) ON DELETE CASCADE,
+    question_id UUID NOT NULL REFERENCES question(id),
+    result NUMERIC NOT NULL,
+    detailed_result TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create Submission table
 CREATE TABLE submission (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     student_id UUID NOT NULL REFERENCES "user"(id),
-    question_id UUID NOT NULL REFERENCES question(id),
+    question_set_id UUID NOT NULL REFERENCES question_set(id),
     pdf_link TEXT NOT NULL,
     solution_text TEXT,
     evaluation_id UUID REFERENCES evaluated_script(id),
-    CONSTRAINT check_student_role CHECK (
-        EXISTS (
-            SELECT 1 FROM "user" u
-            WHERE u.id = student_id AND u.role = 'student'
-        )
-    )
+    is_evaluated BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    -- Removed CONSTRAINT check_student_role CHECK (...) as it's not supported with subqueries
+    -- This check should be handled in the application layer (e.g., in submissions/submit.py)
 );
 
 -- Create Recheck table
-CREATE TABLE recheck (
+CREATE TABLE "recheck" (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     submission_id UUID NOT NULL REFERENCES submission(id) ON DELETE CASCADE,
     issue_detail TEXT NOT NULL,
     response_detail TEXT,
     responser_id UUID REFERENCES "user"(id),
-    CONSTRAINT check_responser_role CHECK (
-        responser_id IS NULL OR EXISTS (
-            SELECT 1 FROM "user" u
-            WHERE u.id = responser_id AND u.role IN ('teacher', 'moderator')
-        )
-    )
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    -- Removed CONSTRAINT check_responser_role CHECK (...) as it's not supported with subqueries
+    -- This check should be handled in the application layer (e.g., in submissions/recheck.py using require_role)
 );
 
 -- Add a simple table for testing API interactions

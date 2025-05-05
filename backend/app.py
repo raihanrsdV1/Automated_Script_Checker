@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 
 # Import routers and utilities
 from auth import login, register
-from questions import create as create_q, retrieve as retrieve_q, update as update_q, delete as delete_q
+from questions import create as create_q, retrieve as retrieve_q, update as update_q, delete as delete_q, question_set as question_set_q  # Import the new question set router
 from submissions import submit as submit_s, retrieve as retrieve_s, recheck as recheck_s
-from database.db_connection import connect as get_db_connection # Import 'connect' and alias it for consistency if needed, or just use 'connect'
+from subjects import subjects_router  # Import the new subjects router
+from database.db_connection import connect # Fix import to use connect instead of get_db_connection
 # from utils.auth import verify_token # Commented out as auth is disabled for now
 from utils.error_handler import http_exception_handler
 from utils.logging_middleware import LoggingMiddleware # Import the new middleware
@@ -26,7 +27,7 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:5173", # Default Vite port
-    "http://localhost:3030", # Add the actual frontend origin from the error message
+    "http://localhost:3031", # Add the actual frontend origin from the error message
     "http://localhost:3000", # Allow backend itself (if needed)
     # Add your deployed frontend URL here if applicable
 ]
@@ -56,6 +57,10 @@ app.include_router(create_q.router, prefix="/api/questions", tags=["Questions"])
 app.include_router(retrieve_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(update_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(delete_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
+app.include_router(question_set_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
+
+# Subject Management Routes
+app.include_router(subjects_router, prefix="/api", tags=["Subjects"]) #, dependencies=[Depends(verify_token)])
 
 # Submission Management Routes (Protected - Auth Disabled)
 app.include_router(submit_s.router, prefix="/api/submissions", tags=["Submissions"]) #, dependencies=[Depends(verify_token)])
@@ -64,9 +69,11 @@ app.include_router(recheck_s.router, prefix="/api/submissions", tags=["Submissio
 
 # --- Simple Test Route --- #
 @app.get("/api/test")
-async def get_test_values(conn = Depends(get_db_connection)):
+async def get_test_values():
     logger.info("Executing GET /api/test endpoint") # Example specific log
+    conn = None
     try:
+        conn = connect()
         cursor = conn.cursor()
         cursor.execute("SELECT id, value FROM test_table ORDER BY id")
         values = cursor.fetchall()
@@ -76,10 +83,14 @@ async def get_test_values(conn = Depends(get_db_connection)):
     except Exception as e:
         logger.error(f"Error fetching test values: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    finally:
+        if conn:
+            conn.close()
 
 @app.post("/api/test/add")
-async def add_test_value(request: Request, conn = Depends(get_db_connection)):
+async def add_test_value(request: Request):
     logger.info("Executing POST /api/test/add endpoint") # Example specific log
+    conn = None
     try:
         data = await request.json()
         value = data.get('value')
@@ -87,6 +98,7 @@ async def add_test_value(request: Request, conn = Depends(get_db_connection)):
             logger.warning("Attempted to add empty value.")
             raise HTTPException(status_code=400, detail="Value cannot be empty")
 
+        conn = connect()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO test_table (value) VALUES (%s) RETURNING id, value", (value,))
         new_record = cursor.fetchone()
@@ -95,9 +107,13 @@ async def add_test_value(request: Request, conn = Depends(get_db_connection)):
         logger.info(f"Added new test value: ID={new_record[0]}, Value='{new_record[1]}'")
         return {"id": new_record[0], "value": new_record[1]}
     except Exception as e:
-        conn.rollback() # Rollback on error
+        if conn:
+            conn.rollback() # Rollback on error
         logger.error(f"Error adding test value: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Database error or invalid request: {e}")
+    finally:
+        if conn:
+            conn.close()
 
 # --- Root Endpoint --- #
 @app.get("/")

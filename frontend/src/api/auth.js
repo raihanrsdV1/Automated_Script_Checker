@@ -1,5 +1,7 @@
 // src/api/auth.js
-const API_ROOT = "http://localhost:8000";
+import { API_CONFIG } from '../config';
+
+const API_ROOT = API_CONFIG.BASE_URL.replace('/api', '');
 
 export async function login({ username, password }) {
   const res = await fetch(`${API_ROOT}/auth/login`, {

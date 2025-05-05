@@ -7,6 +7,7 @@ import Register from './pages/register';
 import UserDashboard from './pages/user-dashboard';
 import RecheckerDashboard from './pages/rechecker-dashboard';
 import QuestionRubricSetup from './pages/question-rubric-setup';
+import AdminDashboard from './pages/admin/SubjectManagement'; // Import AdminDashboard instead
 import Auth from './pages/auth/index.jsx';
 import { ToastContainer, toast } from "react-toastify";
 import Test from './pages/test/index.jsx'; // Import the Test component
@@ -55,6 +56,7 @@ function App() {
               <Route path="/user-dashboard" element={<UserDashboard />} />
               <Route path="/rechecker-dashboard" element={<RecheckerDashboard />} />
               <Route path="/question-rubric-setup" element={<QuestionRubricSetup />} />
+              <Route path="/admin" element={<AdminDashboard />} /> {/* Changed to just /admin path */}
               <Route path="/student-reports" element={<Test />} />
               <Route path="/test" element={<Test />} />
               <Route path="/result-generator" element={<Test />} />

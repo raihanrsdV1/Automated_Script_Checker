@@ -1,18 +1,18 @@
 import React from 'react';
-import "../../../styles/QuestionRubric.css"
-import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import { MathJax } from 'better-react-mathjax';
+import '../../../styles/QuestionRubric.css';
 
 export default function QuestionCard({ data, onClick }) {
-    return (
-      <div className="qr-card" onClick={onClick}>
-        <h3 className="qr-subject">{data.subject}</h3>
-        <div className="qr-question truncate-text">
-          <MathJaxContext>
-            <MathJax dynamic>
-              {'\\(' + data.question + '\\)'}
-            </MathJax>
-          </MathJaxContext>
-        </div>
+  // Use the subject_name from the data that now comes from our backend
+  const subjectName = data.subject_name || 'Unknown Subject';
+  
+  return (
+    <div className="qr-card" onClick={() => onClick(data)}>
+      <div className="qr-subject">{subjectName}</div>
+      <div className="qr-question truncate-text">
+        <MathJax>{data.question_text}</MathJax>
       </div>
-    );
-  }
+      <div className="qr-marks">Marks: {data.marks}</div>
+    </div>
+  );
+}

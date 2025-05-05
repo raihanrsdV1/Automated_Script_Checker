@@ -11,12 +11,21 @@ async def retrieve_questions(subject_id: Optional[str] = Query(None)):
     try:
         if subject_id:
             cur.execute(
-                "SELECT id, subject_id, question_text, question_rubric FROM question WHERE subject_id = %s",
+                """
+                SELECT q.id, q.subject_id, s.name as subject_name, q.question_text, q.question_rubric, q.marks 
+                FROM question q
+                JOIN subject s ON q.subject_id = s.id
+                WHERE q.subject_id = %s
+                """,
                 (subject_id,)
             )
         else:
             cur.execute(
-                "SELECT id, subject_id, question_text, question_rubric FROM question"
+                """
+                SELECT q.id, q.subject_id, s.name as subject_name, q.question_text, q.question_rubric, q.marks 
+                FROM question q
+                JOIN subject s ON q.subject_id = s.id
+                """
             )
         rows = cur.fetchall()
     except Exception as e:
@@ -26,7 +35,9 @@ async def retrieve_questions(subject_id: Optional[str] = Query(None)):
         result.append({
             "id": r[0],
             "subject_id": r[1],
-            "question_text": r[2],
-            "question_rubric": r[3]
+            "subject_name": r[2],
+            "question_text": r[3],
+            "question_rubric": r[4],
+            "marks": r[5]
         })
     return result

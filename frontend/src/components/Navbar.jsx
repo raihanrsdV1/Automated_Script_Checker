@@ -12,6 +12,7 @@ function Navbar() {
           <Link to="/user-dashboard" className="ml-4">User Dashboard</Link>
           <Link to="/rechecker-dashboard" className="ml-4">Rechecker Dashboard</Link>
           <Link to="/question-rubric-setup" className="ml-4">Question Setup</Link>
+          <Link to="/admin" className="ml-4">Admin Dashboard</Link>
         </div>
       </div>
     </nav>
