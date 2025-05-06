@@ -6,6 +6,8 @@ import { Eye, EyeOff, Mail} from 'lucide-react';
 import { showToast } from "../../../App";
 import { register as apiRegister } from "../../../api/auth"; 
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { API_CONFIG } from '../../../config';
 
 const RegForm = () => {
   const [firstName, setFirstName] = useState('');
@@ -17,11 +19,44 @@ const RegForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // New role-specific fields
+  const [currentClassId, setCurrentClassId] = useState('');
+  const [designation, setDesignation] = useState('');
+  const [systemRole, setSystemRole] = useState('');
+  
+  // State to track available classes for student registration
+  const [classes, setClasses] = useState([]);
+  const [classesLoading, setClassesLoading] = useState(false);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    
+    // Fetch classes for student registration
+    const fetchClasses = async () => {
+      if (role === 'student') {
+        try {
+          setClassesLoading(true);
+          const response = await axios.get(`${API_CONFIG.BASE_URL}/classes`);
+          setClasses(response.data || []);
+        } catch (error) {
+          console.error('Failed to load classes:', error);
+          showToast('Failed to load available classes', 'error');
+          // Fallback to sample data if API fails
+          setClasses([
+            { id: '00000000-0000-0000-0000-000000000001', name: 'Sample Class 1' },
+            { id: '00000000-0000-0000-0000-000000000002', name: 'Sample Class 2' }
+          ]);
+        } finally {
+          setClassesLoading(false);
+        }
+      }
+    };
+    
+    fetchClasses();
+  }, [role]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -51,6 +86,17 @@ const RegForm = () => {
       showToast('Password must be at least 6 characters', 'error');
       return;
     }
+    
+    // Role-specific validation
+    if (role === 'student' && !currentClassId) {
+      showToast('Please select a class', 'error');
+      return;
+    }
+    
+    if (role === 'teacher' && !designation) {
+      showToast('Please enter your designation', 'error');
+      return;
+    }
 
     try {
       setLoading(true);
@@ -66,6 +112,15 @@ const RegForm = () => {
         password,
         role,
       };
+      
+      // Add role-specific fields to payload
+      if (role === 'student') {
+        payload.current_class_id = currentClassId;
+      } else if (role === 'teacher') {
+        payload.designation = designation;
+      } else if (role === 'moderator') {
+        payload.system_role = systemRole;
+      }
     
       const { message } = await apiRegister(payload);
       showToast(message, "success");
@@ -188,9 +243,62 @@ const RegForm = () => {
             >
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
+              <option value="moderator">Moderator</option>
             </select>
           </div>
         </div>
+        
+        {/* Conditional fields based on selected role */}
+        {role === 'student' && (
+          <div className="input-group">
+            <label htmlFor="currentClassId">Select Class</label>
+            <div className="input-field">
+              <select
+                id="currentClassId"
+                value={currentClassId}
+                onChange={e => setCurrentClassId(e.target.value)}
+                disabled={classesLoading}
+              >
+                <option value="">
+                  {classesLoading ? 'Loading classes...' : 'Select a class'}
+                </option>
+                {classes.map(cls => (
+                  <option key={cls.id} value={cls.id}>{cls.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+        
+        {role === 'teacher' && (
+          <div className="input-group">
+            <label htmlFor="designation">Designation</label>
+            <div className="input-field">
+              <input
+                id="designation"
+                type="text"
+                placeholder="e.g., Professor, Assistant Teacher"
+                value={designation}
+                onChange={(e) => setDesignation(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        
+        {role === 'moderator' && (
+          <div className="input-group">
+            <label htmlFor="systemRole">System Role</label>
+            <div className="input-field">
+              <input
+                id="systemRole"
+                type="text"
+                placeholder="e.g., Admin, Content Moderator"
+                value={systemRole}
+                onChange={(e) => setSystemRole(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
 
         <button 
           type="submit" 

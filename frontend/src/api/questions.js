@@ -42,6 +42,17 @@ export const fetchQuestionById = async (questionId) => {
 
 export const createQuestion = async (questionData) => {
   try {
+    // Ensure the questionData has the expected structure with rubrics array
+    if (!questionData.rubrics || !Array.isArray(questionData.rubrics)) {
+      questionData.rubrics = [];
+    }
+    
+    // Ensure each rubric has a serial_number if not already set
+    questionData.rubrics = questionData.rubrics.map((rubric, index) => ({
+      ...rubric,
+      serial_number: rubric.serial_number || index + 1
+    }));
+    
     const response = await axios.post(`${API_URL}/questions`, questionData);
     return response.data;
   } catch (error) {
@@ -52,6 +63,17 @@ export const createQuestion = async (questionData) => {
 
 export const updateQuestion = async (questionId, questionData) => {
   try {
+    // Ensure the questionData has the expected structure with rubrics array
+    if (!questionData.rubrics || !Array.isArray(questionData.rubrics)) {
+      questionData.rubrics = [];
+    }
+    
+    // Ensure each rubric has a serial_number if not already set
+    questionData.rubrics = questionData.rubrics.map((rubric, index) => ({
+      ...rubric,
+      serial_number: rubric.serial_number || index + 1
+    }));
+    
     const response = await axios.put(`${API_URL}/questions/${questionId}`, questionData);
     return response.data;
   } catch (error) {
@@ -67,6 +89,40 @@ export const deleteQuestion = async (questionId) => {
   } catch (error) {
     console.error(`Error deleting question ${questionId}:`, error);
     throw new Error('Failed to delete question');
+  }
+};
+
+// Rubric-specific endpoints (new)
+export const createRubric = async (questionId, rubricData) => {
+  try {
+    // This endpoint doesn't exist yet in the backend, but we're preparing for it
+    const response = await axios.post(`${API_URL}/questions/${questionId}/rubrics`, rubricData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error creating rubric for question ${questionId}:`, error);
+    throw new Error('Failed to create rubric');
+  }
+};
+
+export const updateRubric = async (questionId, rubricId, rubricData) => {
+  try {
+    // This endpoint doesn't exist yet in the backend, but we're preparing for it
+    const response = await axios.put(`${API_URL}/questions/${questionId}/rubrics/${rubricId}`, rubricData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating rubric ${rubricId}:`, error);
+    throw new Error('Failed to update rubric');
+  }
+};
+
+export const deleteRubric = async (questionId, rubricId) => {
+  try {
+    // This endpoint doesn't exist yet in the backend, but we're preparing for it
+    const response = await axios.delete(`${API_URL}/questions/${questionId}/rubrics/${rubricId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting rubric ${rubricId}:`, error);
+    throw new Error('Failed to delete rubric');
   }
 };
 
