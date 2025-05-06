@@ -11,11 +11,52 @@ export const fetchTests = async (subjectId = null) => {
     if (subjectId) {
       url += `?subject_id=${subjectId}`;
     }
+    
+    console.log('Fetching tests from URL:', url);
     const response = await axios.get(url);
+    console.log('Tests response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching tests:', error);
-    throw new Error('Failed to fetch tests');
+    
+    // Add more detailed error logging for debugging
+    if (error.response) {
+      // The server responded with a status code outside the 2xx range
+      console.error('Server response error:', {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers
+      });
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received from server');
+    } else {
+      // Something happened in setting up the request
+      console.error('Request setup error:', error.message);
+    }
+    
+    // Return empty array instead of throwing to prevent UI crashes
+    return [];
+  }
+};
+
+// New function to fetch all tests without subject filtering
+// This provides a more robust alternative if the subject filtering causes issues
+export const fetchAllTests = async () => {
+  try {
+    // Use a direct endpoint that doesn't rely on query parameters
+    const response = await axios.get(`${API_URL}/questions/sets`);
+    return response.data;
+  } catch (error) {
+    // If this also fails, try to use the tests endpoint as a fallback
+    console.error('Error fetching all tests, trying alternative endpoint:', error);
+    try {
+      const response = await axios.get(`${API_URL}/tests`);
+      return response.data;
+    } catch (fallbackError) {
+      console.error('Error fetching tests from fallback endpoint:', fallbackError);
+      throw new Error('Failed to fetch tests from all available endpoints');
+    }
   }
 };
 

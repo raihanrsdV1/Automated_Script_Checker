@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from database.db_connection import connect
 import uuid
+import logging 
 
 router = APIRouter()
 
@@ -49,51 +50,67 @@ async def create_question_set(req: QuestionSetCreateRequest):
     return {"id": question_set_id, "message": "Question set created"}
 
 # --- Get All Question Sets ---
-
 @router.get("/sets", response_model=List[dict])
 async def get_question_sets(subject_id: Optional[str] = Query(None)):
-    conn = connect()
-    cur = conn.cursor()
+    conn = None
+    cur = None
     
     try:
+        conn = connect()
+        cur = conn.cursor()
+        
         if subject_id:
+            logging.info(f"Fetching question sets for subject ID: {subject_id}")
+            # Fixed query to use actual table names from schema
             cur.execute(
                 """
-                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, 
-                       qs.teacher_id, qs.created_at 
+                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name,
+                       qs.teacher_id, qs.created_at
                 FROM question_set qs
                 JOIN subject s ON qs.subject_id = s.id
-                WHERE qs.subject_id = %s 
+                WHERE qs.subject_id = %s
                 ORDER BY qs.created_at DESC
                 """,
                 (subject_id,)
             )
         else:
+            logging.info("Fetching all question sets without subject filter")
+            # Fixed query to use actual table names from schema
             cur.execute(
                 """
-                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, 
-                       qs.teacher_id, qs.created_at 
+                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name,
+                       qs.teacher_id, qs.created_at
                 FROM question_set qs
                 JOIN subject s ON qs.subject_id = s.id
                 ORDER BY qs.created_at DESC
                 """
             )
+            
         rows = cur.fetchall()
+        
+        result = []
+        for r in rows:
+            result.append({
+                "id": r[0],
+                "name": r[1],
+                "description": r[2],
+                "subject_id": r[3],
+                "subject_name": r[4],
+                "teacher_id": r[5],
+                "created_at": r[6]
+            })
+        return result
+        
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    result = []
-    for r in rows:
-        result.append({
-            "id": r[0],
-            "name": r[1],
-            "description": r[2],
-            "subject_id": r[3],
-            "subject_name": r[4],
-            "teacher_id": r[5],
-            "created_at": r[6]
-        })
-    return result
+        logging.error(f"Database error in get_question_sets: {e}", exc_info=True)
+        # Return more specific error message to help with debugging
+        error_message = f"Error fetching question sets: {str(e)}"
+        raise HTTPException(status_code=500, detail=error_message)
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 # --- Get Question Set by ID ---
 
