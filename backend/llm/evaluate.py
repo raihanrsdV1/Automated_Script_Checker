@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # LLM API endpoint (Kaggle via ngrok)
-LLM_EVALUATE_ENDPOINT = "https://7f9d-35-185-46-99.ngrok-free.app/evaluate"
+LLM_EVALUATE_ENDPOINT = "https://1b2a-34-57-168-20.ngrok-free.app/evaluate"
 
 router = APIRouter()
 
