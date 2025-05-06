@@ -12,11 +12,13 @@ class QuestionSetCreateRequest(BaseModel):
     name: str
     description: Optional[str] = None
     subject_id: str
+    teacher_id: str  # Added teacher_id field
 
 class QuestionSetUpdateRequest(BaseModel):
     name: str
     description: Optional[str] = None
     subject_id: str
+    teacher_id: str  # Added teacher_id field
 
 class QuestionSetAddQuestionRequest(BaseModel):
     question_id: str
@@ -36,8 +38,8 @@ async def create_question_set(req: QuestionSetCreateRequest):
     
     try:
         cur.execute(
-            "INSERT INTO question_set (id, name, description, subject_id) VALUES (%s, %s, %s, %s)",
-            (question_set_id, req.name, req.description, req.subject_id)
+            "INSERT INTO question_set (id, name, description, subject_id, teacher_id) VALUES (%s, %s, %s, %s, %s)",
+            (question_set_id, req.name, req.description, req.subject_id, req.teacher_id)
         )
         conn.commit()
     except Exception as e:
@@ -57,7 +59,8 @@ async def get_question_sets(subject_id: Optional[str] = Query(None)):
         if subject_id:
             cur.execute(
                 """
-                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, qs.created_at 
+                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, 
+                       qs.teacher_id, qs.created_at 
                 FROM question_set qs
                 JOIN subject s ON qs.subject_id = s.id
                 WHERE qs.subject_id = %s 
@@ -68,7 +71,8 @@ async def get_question_sets(subject_id: Optional[str] = Query(None)):
         else:
             cur.execute(
                 """
-                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, qs.created_at 
+                SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, 
+                       qs.teacher_id, qs.created_at 
                 FROM question_set qs
                 JOIN subject s ON qs.subject_id = s.id
                 ORDER BY qs.created_at DESC
@@ -86,7 +90,8 @@ async def get_question_sets(subject_id: Optional[str] = Query(None)):
             "description": r[2],
             "subject_id": r[3],
             "subject_name": r[4],
-            "created_at": r[5]
+            "teacher_id": r[5],
+            "created_at": r[6]
         })
     return result
 
@@ -101,7 +106,8 @@ async def get_question_set(question_set_id: str):
         # Get question set details
         cur.execute(
             """
-            SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, qs.created_at 
+            SELECT qs.id, qs.name, qs.description, qs.subject_id, s.name as subject_name, 
+                   qs.teacher_id, qs.created_at 
             FROM question_set qs
             JOIN subject s ON qs.subject_id = s.id
             WHERE qs.id = %s
@@ -113,14 +119,17 @@ async def get_question_set(question_set_id: str):
         if not question_set:
             raise HTTPException(status_code=404, detail="Question set not found")
             
-        # Get questions in this set
+        # Get questions in this set with their rubrics
         cur.execute(
             """
-            SELECT q.id, q.subject_id, s.name as subject_name, q.question_text, q.question_rubric, q.marks, qsm.question_order 
+            SELECT q.id, q.subject_id, s.name as subject_name, q.question_text, qsm.question_order,
+                   COALESCE(SUM(r.marks), 0) as total_marks
             FROM question q
             JOIN subject s ON q.subject_id = s.id
             JOIN question_set_mapping qsm ON q.id = qsm.question_id
+            LEFT JOIN rubric r ON q.id = r.question_id
             WHERE qsm.question_set_id = %s
+            GROUP BY q.id, q.subject_id, s.name, q.question_text, qsm.question_order
             ORDER BY qsm.question_order
             """,
             (question_set_id,)
@@ -138,9 +147,8 @@ async def get_question_set(question_set_id: str):
             "subject_id": q[1],
             "subject_name": q[2],
             "question_text": q[3],
-            "question_rubric": q[4],
-            "marks": q[5],
-            "order": q[6]
+            "order": q[4],
+            "marks": q[5]
         })
     
     return {
@@ -149,7 +157,8 @@ async def get_question_set(question_set_id: str):
         "description": question_set[2],
         "subject_id": question_set[3],
         "subject_name": question_set[4],
-        "created_at": question_set[5],
+        "teacher_id": question_set[5],
+        "created_at": question_set[6],
         "questions": question_list
     }
 
@@ -165,8 +174,8 @@ async def update_question_set(
     
     try:
         cur.execute(
-            "UPDATE question_set SET name = %s, description = %s, subject_id = %s WHERE id = %s",
-            (req.name, req.description, req.subject_id, question_set_id)
+            "UPDATE question_set SET name = %s, description = %s, subject_id = %s, teacher_id = %s WHERE id = %s",
+            (req.name, req.description, req.subject_id, req.teacher_id, question_set_id)
         )
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Question set not found")
