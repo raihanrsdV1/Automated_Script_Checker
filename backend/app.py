@@ -63,11 +63,12 @@ app.include_router(login.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(register.router, prefix="/api/auth", tags=["Authentication"])
 
 # Question Management Routes (Protected - Auth Disabled)
+# The question_set_q.router should be registered before retrieve_q.router
+app.include_router(question_set_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(create_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(retrieve_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(update_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(delete_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
-app.include_router(question_set_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 
 # Subject Management Routes
 app.include_router(subjects_router, prefix="/api", tags=["Subjects"]) #, dependencies=[Depends(verify_token)])

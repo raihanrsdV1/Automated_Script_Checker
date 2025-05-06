@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
@@ -5,6 +6,7 @@ from database.db_connection import connect
 import uuid
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # --- Question Set Models ---
 
@@ -44,7 +46,8 @@ async def create_question_set(req: QuestionSetCreateRequest):
         conn.commit()
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error creating question set: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error creating question set: {str(e)}")
         
     return {"id": question_set_id, "message": "Question set created"}
 
@@ -80,7 +83,8 @@ async def get_question_sets(subject_id: Optional[str] = Query(None)):
             )
         rows = cur.fetchall()
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error fetching question sets: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error fetching question sets: {str(e)}")
     
     result = []
     for r in rows:
@@ -136,8 +140,11 @@ async def get_question_set(question_set_id: str):
         )
         questions = cur.fetchall()
         
+    except HTTPException: # Re-raise HTTPException as is (e.g. 404)
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error fetching question set by ID {question_set_id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error fetching question set by ID: {str(e)}")
     
     # Format the response
     question_list = []
@@ -180,9 +187,12 @@ async def update_question_set(
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Question set not found")
         conn.commit()
+    except HTTPException: 
+        raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error updating question set {question_set_id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error updating question set: {str(e)}")
         
     return {"message": "Question set updated"}
 
@@ -204,9 +214,12 @@ async def delete_question_set(question_set_id: str):
             raise HTTPException(status_code=404, detail="Question set not found")
             
         conn.commit()
+    except HTTPException:
+        raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error deleting question set {question_set_id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error deleting question set: {str(e)}")
         
     return {"message": "Question set deleted"}
 
@@ -239,7 +252,7 @@ async def add_question_to_set(
         )
         
         if cur.fetchone() is not None:
-            raise HTTPException(status_code=400, detail="Question already in set")
+            raise HTTPException(status_code=400, detail="Question already in set") # 400 is appropriate here
         
         # Add question to set
         cur.execute(
@@ -248,11 +261,12 @@ async def add_question_to_set(
         )
         conn.commit()
     except HTTPException:
-        conn.rollback()
+        conn.rollback() # Rollback if an HTTPException (like 404 or 400) occurred
         raise
     except Exception as e:
+        logger.error(f"Error adding question to set {question_set_id}: {str(e)}", exc_info=True)
         conn.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error adding question to set: {str(e)}")
         
     return {"id": mapping_id, "message": "Question added to set"}
 
@@ -288,6 +302,7 @@ async def add_questions_to_set(
             # Check if question exists
             cur.execute("SELECT 1 FROM question WHERE id = %s", (question_id,))
             if cur.fetchone() is None:
+                logger.warning(f"Skipping non-existent question ID {question_id} for question set {question_set_id}")
                 continue  # Skip non-existent questions
                 
             # Check if mapping already exists
@@ -297,10 +312,11 @@ async def add_questions_to_set(
             )
             
             if cur.fetchone() is not None:
+                logger.warning(f"Skipping question ID {question_id} already in set {question_set_id}")
                 continue  # Skip questions already in the set
             
             # Add question to set with incremented order
-            question_order = current_max_order + i + 1
+            question_order = current_max_order + i + 1 # This logic might need review if questions are processed out of order or some are skipped
             cur.execute(
                 "INSERT INTO question_set_mapping (id, question_set_id, question_id, question_order) VALUES (%s, %s, %s, %s)",
                 (mapping_id, question_set_id, question_id, question_order)
@@ -312,8 +328,9 @@ async def add_questions_to_set(
         conn.rollback()
         raise
     except Exception as e:
+        logger.error(f"Error adding multiple questions to set {question_set_id}: {str(e)}", exc_info=True)
         conn.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error adding multiple questions to set: {str(e)}")
         
     return {"message": f"Added {added_count} questions to set"}
 
@@ -335,9 +352,12 @@ async def remove_question_from_set(
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Question not found in set")
         conn.commit()
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Error removing question from set {question_set_id} for question {question_id}: {str(e)}", exc_info=True)
         conn.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error removing question from set: {str(e)}")
         
     return {"message": "Question removed from set"}
 
@@ -352,7 +372,8 @@ async def get_subjects():
         cur.execute("SELECT id, name FROM subject")
         rows = cur.fetchall()
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Error fetching subjects: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error fetching subjects: {str(e)}")
     
     result = []
     for r in rows:
