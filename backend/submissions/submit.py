@@ -106,73 +106,73 @@ async def submit_answer(
         "text_extracted": len(answer_text) > 0
     }
 
-@router.get("/user")
-async def get_user_submissions(user=Depends(require_role(['student']))):
-    """Get all submissions for the current authenticated user"""
-    student_id = user.get('user_id')
+# @router.get("/user")
+# async def get_user_submissions(user=Depends(require_role(['student']))):
+#     """Get all submissions for the current authenticated user"""
+#     student_id = user.get('user_id')
     
-    conn = connect()
-    cur = conn.cursor()
+#     conn = connect()
+#     cur = conn.cursor()
     
-    try:
-        cur.execute(
-            """
-            SELECT 
-                e.id, e.question_id, e.question_set_id, e.answer_pdf_url, 
-                e.answer_text, e.evaluation_status, 
-                COALESCE(SUM(ed.obtained_marks), 0) as total_result,
-                STRING_AGG(ed.detailed_result, E'\n\n') as feedback,
-                e.created_at, q.question_text, 
-                COALESCE(SUM(r.marks), 0) as total_marks,
-                qs.name as question_set_name,
-                EXISTS (SELECT 1 FROM recheck r WHERE r.evaluation_id = e.id) as recheck_requested
-            FROM 
-                evaluation e
-            JOIN 
-                question q ON e.question_id = q.id
-            LEFT JOIN 
-                question_set qs ON e.question_set_id = qs.id
-            LEFT JOIN
-                evaluation_detail ed ON e.id = ed.evaluation_id
-            LEFT JOIN
-                rubric r ON q.id = r.question_id
-            WHERE 
-                e.student_id = %s
-            GROUP BY
-                e.id, e.question_id, e.question_set_id, e.answer_pdf_url, 
-                e.answer_text, e.evaluation_status, e.created_at,
-                q.question_text, qs.name
-            ORDER BY 
-                e.created_at DESC
-            """,
-            (student_id,)
-        )
+#     try:
+#         cur.execute(
+#             """
+#             SELECT 
+#                 e.id, e.question_id, e.question_set_id, e.answer_pdf_url, 
+#                 e.answer_text, e.evaluation_status, 
+#                 COALESCE(SUM(ed.obtained_marks), 0) as total_result,
+#                 STRING_AGG(ed.detailed_result, E'\n\n') as feedback,
+#                 e.created_at, q.question_text, 
+#                 COALESCE(SUM(r.marks), 0) as total_marks,
+#                 qs.name as question_set_name,
+#                 EXISTS (SELECT 1 FROM recheck r WHERE r.evaluation_id = e.id) as recheck_requested
+#             FROM 
+#                 evaluation e
+#             JOIN 
+#                 question q ON e.question_id = q.id
+#             LEFT JOIN 
+#                 question_set qs ON e.question_set_id = qs.id
+#             LEFT JOIN
+#                 evaluation_detail ed ON e.id = ed.evaluation_id
+#             LEFT JOIN
+#                 rubric r ON q.id = r.question_id
+#             WHERE 
+#                 e.student_id = %s
+#             GROUP BY
+#                 e.id, e.question_id, e.question_set_id, e.answer_pdf_url, 
+#                 e.answer_text, e.evaluation_status, e.created_at,
+#                 q.question_text, qs.name
+#             ORDER BY 
+#                 e.created_at DESC
+#             """,
+#             (student_id,)
+#         )
         
-        submissions = []
-        for row in cur.fetchall():
-            submissions.append({
-                "id": row[0],
-                "question_id": row[1],
-                "question_set_id": row[2],
-                "solution_pdf_url": row[3],
-                "extracted_text": row[4],
-                "evaluated": row[5] == 'completed',
-                "result": row[6],
-                "feedback": row[7],
-                "created_at": row[8],
-                "question_text": row[9],
-                "question_marks": row[10],
-                "question_set_name": row[11],
-                "recheck_requested": row[12]
-            })
+#         submissions = []
+#         for row in cur.fetchall():
+#             submissions.append({
+#                 "id": row[0],
+#                 "question_id": row[1],
+#                 "question_set_id": row[2],
+#                 "solution_pdf_url": row[3],
+#                 "extracted_text": row[4],
+#                 "evaluated": row[5] == 'completed',
+#                 "result": row[6],
+#                 "feedback": row[7],
+#                 "created_at": row[8],
+#                 "question_text": row[9],
+#                 "question_marks": row[10],
+#                 "question_set_name": row[11],
+#                 "recheck_requested": row[12]
+#             })
             
-        return submissions
+#         return submissions
         
-    except Exception as e:
-        logger.error(f"Failed to retrieve submissions: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve submissions: {str(e)}")
-    finally:
-        cur.close()
+#     except Exception as e:
+#         logger.error(f"Failed to retrieve submissions: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Failed to retrieve submissions: {str(e)}")
+#     finally:
+#         cur.close()
 
 async def trigger_evaluation(evaluation_id: str):
     """

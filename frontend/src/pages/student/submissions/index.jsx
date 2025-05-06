@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Spin, Empty, Typography, Tag, Button, message, Drawer, Collapse, Space, Row, Col, Badge, Progress, Statistic } from 'antd';
-import { ClockCircleOutlined, CheckCircleOutlined, FileTextOutlined, BookOutlined, TrophyOutlined, ExperimentOutlined, TeamOutlined } from '@ant-design/icons';
+import { Table, Card, Spin, Empty, Typography, Tag, Button, message, Drawer, Collapse, Space, Row, Col, Badge, Progress, Statistic, Tabs, List, Divider } from 'antd';
+import { ClockCircleOutlined, CheckCircleOutlined, FileTextOutlined, BookOutlined, TrophyOutlined, FilePdfOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { API_URL } from '../../../config';
 import './style.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
+const { TabPane } = Tabs;
 
 const SubmissionsList = () => {
   const [loading, setLoading] = useState(true);
-  const [submissions, setSubmissions] = useState([]);
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [questionSets, setQuestionSets] = useState([]);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   useEffect(() => {
@@ -24,37 +25,80 @@ const SubmissionsList = () => {
           }
         });
 
-        // Generate dummy submissions if no real data
-        let processedSubmissions = [];
+        // Log the raw API response for debugging
+        console.log('API Response:', response.data);
+
+        // Process question sets if available, otherwise use dummy data
+        let processedQuestionSets = [];
         
-        if (response.data.submissions && response.data.submissions.length > 0) {
-          // Process real submissions for better display
-          processedSubmissions = response.data.submissions.map(submission => {
-            // Calculate score (70% of total as per requirements)
-            const totalMarks = submission.questions.reduce((acc, q) => acc + q.total_marks, 0);
-            const score = Math.round(totalMarks * 0.7);
+        if (response.data && response.data.length > 0) {
+          // Process the real data from API
+          processedQuestionSets = response.data.map(questionSet => {
+            console.log('Processing question set:', questionSet);
+            
+            // Process questions in this set
+            const questions = questionSet.questions || [];
+            let totalObtainedMarks = 0;
+            let totalPossibleMarks = 0;
+            
+            // Process each question and calculate totals
+            const processedQuestions = questions.map(question => {
+              console.log('Processing question:', question);
+              
+              // Status text formatting
+              const statusText = question.status === 'completed' ? 'Evaluated' : 
+                                 question.status === 'pending' ? 'Under Review' : 'Failed';
+              
+              // Calculate percentage for this question
+              const totalMarks = question.total_marks || 0;
+              const obtainedMarks = question.result || 0;
+              totalObtainedMarks += obtainedMarks;
+              totalPossibleMarks += totalMarks;
+              
+              const percentage = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
+              
+              return {
+                ...question,
+                key: question.id,
+                status: statusText,
+                percentage
+              };
+            });
+            
+            // Calculate scores and percentages for the question set
+            const scorePercentage = totalPossibleMarks > 0 
+              ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) 
+              : 0;
+            
+            const completionPercentage = 100; // Assuming all questions in the set were attempted
             
             return {
-              ...submission,
-              key: submission.id,
-              test_name: submission.test_name || `Test ${submission.question_set_id}`,
-              question_count: submission.questions ? submission.questions.length : 0,
-              total_marks: totalMarks,
-              score: score,
-              percentage: Math.round((score / totalMarks) * 100),
-              submitted_at: new Date(submission.submitted_at).toLocaleString()
+              ...questionSet,
+              key: questionSet.id,
+              questions: processedQuestions,
+              total_marks_obtained: totalObtainedMarks,
+              total_possible_marks: totalPossibleMarks,
+              score_percentage: scorePercentage,
+              completion_percentage: completionPercentage,
+              submitted_at: questionSet.first_attempt_date 
+                ? new Date(questionSet.first_attempt_date).toLocaleString() 
+                : 'Unknown date'
             };
           });
+          
+          console.log('Processed question sets:', processedQuestionSets);
         } else {
-          // Generate dummy submissions
-          processedSubmissions = generateDummySubmissions();
+          console.log('No data from API, using dummy data');
+          // Generate dummy question sets
+          processedQuestionSets = generateDummyQuestionSets();
         }
         
-        setSubmissions(processedSubmissions);
+        setQuestionSets(processedQuestionSets);
       } catch (error) {
         console.error('Error fetching submissions:', error);
+        console.log('Using dummy data due to error:', error.message);
         // Generate dummy submissions on error
-        setSubmissions(generateDummySubmissions());
+        setQuestionSets(generateDummyQuestionSets());
       } finally {
         setLoading(false);
       }
@@ -63,52 +107,88 @@ const SubmissionsList = () => {
     fetchSubmissions();
   }, []);
 
-  // Function to generate dummy submissions data
-  const generateDummySubmissions = () => {
+  // Function to generate dummy question sets data
+  const generateDummyQuestionSets = () => {
     const testNames = [
       "Introduction to Algorithms",
       "Data Structures Fundamentals",
       "Advanced Programming Concepts",
       "Web Development Basics",
-      "Database Management Systems",
-      "Object-Oriented Programming",
-      "Machine Learning Fundamentals"
+      "Database Management Systems"
     ];
     
-    return Array.from({ length: 7 }, (_, i) => {
-      const questionCount = 4 + Math.floor(Math.random() * 4); // 4-7 questions
-      const totalMarks = questionCount * 10; // 10 marks per question
-      const score = Math.round(totalMarks * (0.5 + Math.random() * 0.5)); // Random score between 50-100%
-      const daysAgo = Math.floor(Math.random() * 30); // Submission date within last 30 days
+    return Array.from({ length: 5 }, (_, i) => {
+      const questionCount = 4 + Math.floor(Math.random() * 3); // 4-6 questions
+      const questionsAttempted = 2 + Math.floor(Math.random() * (questionCount - 1)); // Some questions attempted
       const submissionDate = new Date();
-      submissionDate.setDate(submissionDate.getDate() - daysAgo);
+      submissionDate.setDate(submissionDate.getDate() - Math.floor(Math.random() * 30)); // Within last 30 days
       
-      // Generate dummy questions
-      const questions = Array.from({ length: questionCount }, (_, qIndex) => ({
-        id: `q-${i}-${qIndex}`,
-        question_text: `This is a sample question ${qIndex + 1} about ${testNames[i]}. Please explain the concept and provide examples.`,
-        total_marks: 10,
-        user_answer: `This is my detailed answer to question ${qIndex + 1}. I've covered all the main points including examples and practical applications.`
-      }));
+      // Create dummy questions for this question set
+      const questions = Array.from({ length: questionsAttempted }, (_, qIndex) => {
+        const totalMarks = 10;
+        const obtainedMarks = Math.round(totalMarks * (0.5 + Math.random() * 0.5)); // 50-100%
+        
+        // Create dummy evaluation details for this question
+        const rubricCount = 3 + Math.floor(Math.random() * 2); // 3-4 rubrics
+        const evaluationDetails = Array.from({ length: rubricCount }, (_, rIndex) => {
+          const rubricMark = 2 + Math.floor(Math.random() * 2); // 2-3 marks per rubric
+          const obtainedRubricMark = Math.round(rubricMark * (0.5 + Math.random() * 0.5)); // 50-100%
+          
+          return {
+            id: `rubric-${i}-${qIndex}-${rIndex}`,
+            rubric_text: `Rubric ${rIndex + 1}: Understanding of ${['concept', 'application', 'analysis', 'implementation'][rIndex % 4]}`,
+            obtained_marks: obtainedRubricMark,
+            total_marks: rubricMark,
+            serial_number: rIndex + 1,
+            explanation: `You ${obtainedRubricMark >= rubricMark * 0.8 ? 'demonstrated excellent' : 
+                           obtainedRubricMark >= rubricMark * 0.6 ? 'showed good' : 'need to improve'} 
+                           understanding of this aspect. ${obtainedRubricMark < rubricMark ? 'Consider reviewing the material again.' : ''}`
+          };
+        });
+        
+        return {
+          id: `eval-${i}-${qIndex}`,
+          key: `eval-${i}-${qIndex}`,
+          question_id: `q-${i}-${qIndex}`,
+          question_text: `Question ${qIndex + 1}: Explain the concept of ${['sorting algorithms', 'data structures', 'recursion', 'complexity analysis', 'dynamic programming'][qIndex % 5]} in ${testNames[i]}`,
+          status: Math.random() > 0.3 ? 'Evaluated' : 'Under Review',
+          solution_pdf_url: 'https://example.com/dummy.pdf', // Dummy URL
+          extracted_text: `This is my answer to question ${qIndex + 1}. I've covered all the main points including examples and practical applications.`,
+          submitted_at: new Date(submissionDate.getTime() + qIndex * 86400000).toLocaleString(), // Different days
+          result: obtainedMarks,
+          total_marks: totalMarks,
+          percentage: Math.round((obtainedMarks / totalMarks) * 100),
+          evaluated: Math.random() > 0.3,
+          recheck_requested: Math.random() > 0.8,
+          evaluation_details: evaluationDetails
+        };
+      });
+      
+      // Calculate totals
+      const totalMarks = questions.reduce((sum, q) => sum + q.total_marks, 0);
+      const obtainedMarks = questions.reduce((sum, q) => sum + q.result, 0);
       
       return {
-        id: `sub-${i}`,
-        key: `sub-${i}`,
-        test_name: testNames[i],
-        question_count: questionCount,
-        total_marks: totalMarks,
-        score: score,
-        percentage: Math.round((score / totalMarks) * 100),
+        id: `qset-${i}`,
+        key: `qset-${i}`,
+        name: testNames[i],
+        description: `A comprehensive test on ${testNames[i]} concepts and applications`,
+        questions_attempted: questionsAttempted,
+        total_questions: questionCount,
+        total_marks_obtained: obtainedMarks,
+        total_possible_marks: totalMarks,
+        completion_percentage: Math.round((questionsAttempted / questionCount) * 100),
+        score_percentage: Math.round((obtainedMarks / totalMarks) * 100),
         submitted_at: submissionDate.toLocaleString(),
-        questions: questions,
-        status: Math.random() > 0.3 ? 'Evaluated' : 'Under Review',
-        feedback: `Overall good attempt. You demonstrated strong understanding of core concepts, but need to work on implementation details.`
+        first_attempt_date: submissionDate,
+        questions: questions
       };
     });
   };
 
-  const showSubmissionDetails = (submission) => {
-    setSelectedSubmission(submission);
+  const showQuestionDetails = (question) => {
+    console.log('Showing question details:', question);
+    setSelectedQuestion(question);
     setDrawerVisible(true);
   };
 
@@ -127,105 +207,12 @@ const SubmissionsList = () => {
     return '#f5222d';
   };
 
-  const columns = [
-    {
-      title: 'Test Name',
-      dataIndex: 'test_name',
-      key: 'test_name',
-    },
-    {
-      title: 'Questions',
-      dataIndex: 'question_count',
-      key: 'question_count',
-      align: 'center',
-    },
-    {
-      title: 'Score',
-      dataIndex: 'score',
-      key: 'score',
-      align: 'center',
-      render: (score, record) => `${score}/${record.total_marks} (${record.percentage}%)`,
-      sorter: (a, b) => a.percentage - b.percentage,
-    },
-    {
-      title: 'Performance',
-      dataIndex: 'percentage',
-      key: 'performance',
-      align: 'center',
-      render: (percentage) => {
-        let color = 'red';
-        let text = 'Poor';
-        
-        if (percentage >= 90) {
-          color = 'green';
-          text = 'Excellent';
-        } else if (percentage >= 80) {
-          color = 'green';
-          text = 'Very Good';
-        } else if (percentage >= 70) {
-          color = 'lime';
-          text = 'Good';
-        } else if (percentage >= 60) {
-          color = 'orange';
-          text = 'Average';
-        } else if (percentage >= 50) {
-          color = 'volcano';
-          text = 'Below Average';
-        }
-        
-        return <Tag color={color}>{text}</Tag>;
-      },
-      filters: [
-        { text: 'Excellent', value: 'Excellent' },
-        { text: 'Very Good', value: 'Very Good' },
-        { text: 'Good', value: 'Good' },
-        { text: 'Average', value: 'Average' },
-        { text: 'Below Average', value: 'Below Average' },
-        { text: 'Poor', value: 'Poor' },
-      ],
-      onFilter: (value, record) => {
-        const percentage = record.percentage;
-        switch (value) {
-          case 'Excellent': return percentage >= 90;
-          case 'Very Good': return percentage >= 80 && percentage < 90;
-          case 'Good': return percentage >= 70 && percentage < 80;
-          case 'Average': return percentage >= 60 && percentage < 70;
-          case 'Below Average': return percentage >= 50 && percentage < 60;
-          case 'Poor': return percentage < 50;
-          default: return true;
-        }
-      },
-    },
-    {
-      title: 'Submitted At',
-      dataIndex: 'submitted_at',
-      key: 'submitted_at',
-      sorter: (a, b) => new Date(a.submitted_at) - new Date(b.submitted_at),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      align: 'center',
-      render: (_, record) => (
-        <Space>
-          <Button 
-            type="primary" 
-            size="small" 
-            onClick={() => showSubmissionDetails(record)}
-          >
-            View Details
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
-  const renderSubmissionDrawer = () => {
-    if (!selectedSubmission) return null;
+  const renderQuestionDrawer = () => {
+    if (!selectedQuestion) return null;
     
     return (
       <Drawer
-        title={`Submission: ${selectedSubmission.test_name}`}
+        title={`Question: ${selectedQuestion.question_text}`}
         placement="right"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
@@ -234,7 +221,7 @@ const SubmissionsList = () => {
           <div className="drawer-footer">
             <div className="submission-score">
               <Text strong>Final Score: </Text>
-              <Text>{selectedSubmission.score}/{selectedSubmission.total_marks} ({selectedSubmission.percentage}%)</Text>
+              <Text>{selectedQuestion.result}/{selectedQuestion.total_marks} ({selectedQuestion.percentage}%)</Text>
             </div>
             <Button onClick={() => setDrawerVisible(false)} type="primary">
               Close
@@ -246,127 +233,162 @@ const SubmissionsList = () => {
           <div className="submission-meta">
             <div className="meta-item">
               <ClockCircleOutlined className="meta-icon" />
-              <Text>Submitted: {selectedSubmission.submitted_at}</Text>
-            </div>
-            <div className="meta-item">
-              <FileTextOutlined className="meta-icon" />
-              <Text>Questions: {selectedSubmission.question_count}</Text>
+              <Text>Submitted: {selectedQuestion.submitted_at}</Text>
             </div>
             <div className="meta-item">
               <CheckCircleOutlined className="meta-icon" />
-              <Text>Result: {selectedSubmission.percentage >= 50 ? 'Pass' : 'Fail'}</Text>
+              <Text>Status: {selectedQuestion.status}</Text>
             </div>
           </div>
+
+          {selectedQuestion.solution_pdf_url && (
+            <div className="pdf-link-container mb-4">
+              <Space>
+                <FilePdfOutlined />
+                <Text strong>Answer PDF: </Text>
+                <a 
+                  href={selectedQuestion.solution_pdf_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  View PDF
+                </a>
+              </Space>
+            </div>
+          )}
           
-          <Collapse className="questions-collapse">
-            {selectedSubmission.questions.map((question, index) => (
-              <Panel 
-                header={
-                  <div className="question-panel-header">
-                    <Text strong>Question {index + 1}</Text>
-                    <Tag color="blue">{Math.round(question.total_marks * 0.7)}/{question.total_marks} marks</Tag>
-                  </div>
-                } 
-                key={index}
-              >
-                <div className="question-content">
-                  <div className="question-text">
-                    <Text strong>Question:</Text>
-                    <Paragraph>{question.question_text}</Paragraph>
-                  </div>
-                  
-                  <div className="user-answer">
-                    <Text strong>Your Answer:</Text>
-                    <Paragraph>{question.user_answer || 'No answer provided'}</Paragraph>
-                  </div>
-                  
-                  <div className="evaluation-result">
-                    <Text strong>Evaluation:</Text>
-                    <Paragraph className="evaluation-text">
-                      {/* Implementation of mock evaluation result */}
-                      <ul>
-                        <li>Addressed key concepts correctly</li>
-                        <li>Good explanation of core principles</li>
-                        <li>Proper structure and organization</li>
-                        <li>Minor errors in technical details</li>
-                      </ul>
-                    </Paragraph>
-                  </div>
-                </div>
-              </Panel>
-            ))}
-          </Collapse>
+          <Divider orientation="left">Your Answer</Divider>
+          <div className="user-answer mb-4">
+            <Paragraph className="p-3 bg-gray-50 border rounded">
+              {selectedQuestion.extracted_text || 'No text extracted from PDF'}
+            </Paragraph>
+          </div>
+          
+          <Divider orientation="left">Evaluation</Divider>
+          {selectedQuestion.evaluated || selectedQuestion.status === 'Evaluated' ? (
+            <>
+              <List
+                itemLayout="vertical"
+                dataSource={selectedQuestion.evaluation_details || []}
+                renderItem={(detail, index) => (
+                  <List.Item className="rubric-item">
+                    <Card className="rubric-card">
+                      <div className="rubric-header">
+                        <Text strong>Rubric {index + 1}: {detail.rubric_text}</Text>
+                        <Tag color={detail.obtained_marks >= detail.total_marks * 0.7 ? 'green' : 'orange'}>
+                          {detail.obtained_marks}/{detail.total_marks} marks
+                        </Tag>
+                      </div>
+                      <div className="rubric-explanation mt-2">
+                        <Paragraph>{detail.explanation}</Paragraph>
+                      </div>
+                    </Card>
+                  </List.Item>
+                )}
+              />
+              {selectedQuestion.evaluation_details?.length === 0 && (
+                <Empty description="No detailed evaluation data available" />
+              )}
+            </>
+          ) : (
+            <Empty description="This submission has not been evaluated yet" />
+          )}
+          
+          {selectedQuestion.recheck_requested && (
+            <div className="recheck-notice mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <Text strong type="warning">Recheck Requested</Text>
+              <Paragraph className="mt-1">You have requested a recheck for this submission. The teacher will review your answers again.</Paragraph>
+            </div>
+          )}
         </div>
       </Drawer>
     );
   };
 
-  // New card view layout for submissions
-  const renderSubmissionCards = () => {
+  // Question set cards view
+  const renderQuestionSetCards = () => {
     return (
-      <Row gutter={[16, 16]} className="submission-cards-container">
-        {submissions.map(submission => (
-          <Col xs={24} sm={12} lg={8} key={submission.id}>
-            <Badge.Ribbon 
-              text={submission.status} 
-              color={getStatusColor(submission.status)}
-            >
-              <Card 
-                hoverable
-                className="submission-card"
-                actions={[
-                  <Button 
-                    type="primary" 
-                    icon={<FileTextOutlined />} 
-                    onClick={() => showSubmissionDetails(submission)}
-                  >
-                    View Details
-                  </Button>
-                ]}
-              >
-                <div className="submission-card-header">
-                  <Title level={4}>{submission.test_name}</Title>
-                  <Text type="secondary">{submission.submitted_at}</Text>
+      <Row gutter={[16, 16]} className="question-set-cards-container">
+        {questionSets.map(questionSet => (
+          <Col xs={24} md={12} key={questionSet.id}>
+            <Card 
+              hoverable
+              className="question-set-card"
+              title={
+                <div className="question-set-card-header">
+                  <Title level={4}>{questionSet.name}</Title>
+                  <Text type="secondary">{questionSet.submitted_at}</Text>
                 </div>
-                
-                <div className="submission-card-progress">
-                  <Progress
-                    type="circle"
-                    percent={submission.percentage}
-                    width={80}
-                    strokeColor={getPerformanceColor(submission.percentage)}
-                    format={(percent) => (
-                      <span className="progress-score">
-                        {submission.score}
-                        <small>/{submission.total_marks}</small>
-                      </span>
+              }
+            >
+              <div className="question-set-stats mb-4">
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Statistic 
+                      title="Completion" 
+                      value={questionSet.completion_percentage || 0} 
+                      suffix="%" 
+                      valueStyle={{ color: getPerformanceColor(questionSet.completion_percentage || 0) }}
+                    />
+                    <Text type="secondary">
+                      {questionSet.questions?.length || 0} questions attempted
+                    </Text>
+                  </Col>
+                  <Col span={12}>
+                    <Statistic 
+                      title="Score" 
+                      value={questionSet.score_percentage || 0} 
+                      suffix="%" 
+                      valueStyle={{ color: getPerformanceColor(questionSet.score_percentage || 0) }}
+                    />
+                    <Text type="secondary">
+                      {questionSet.total_marks_obtained || 0}/{questionSet.total_possible_marks || 0} marks
+                    </Text>
+                  </Col>
+                </Row>
+              </div>
+              
+              <Collapse ghost className="question-set-evaluations">
+                <Panel header={<Text strong>View Questions ({questionSet.questions?.length || 0})</Text>} key="questions">
+                  <List
+                    dataSource={questionSet.questions || []}
+                    renderItem={question => (
+                      <List.Item 
+                        key={question.id}
+                        actions={[
+                          <Badge 
+                            color={getStatusColor(question.status)} 
+                            text={question.status} 
+                          />,
+                          <Button 
+                            type="link" 
+                            onClick={() => showQuestionDetails(question)}
+                          >
+                            View Details
+                          </Button>
+                        ]}
+                      >
+                        <List.Item.Meta
+                          title={<Text ellipsis>{question.question_text}</Text>}
+                          description={
+                            <Space>
+                              <span>{question.result}/{question.total_marks} marks</span>
+                              <Progress 
+                                percent={question.percentage} 
+                                size="small" 
+                                status={question.percentage >= 50 ? "success" : "exception"}
+                                strokeColor={getPerformanceColor(question.percentage)}
+                              />
+                            </Space>
+                          }
+                        />
+                      </List.Item>
                     )}
                   />
-                  <div className="submission-stats">
-                    <div className="submission-stat-item">
-                      <BookOutlined />
-                      <Text>{submission.question_count} Questions</Text>
-                    </div>
-                    <div className="submission-stat-item">
-                      <TrophyOutlined />
-                      <Text>
-                        {submission.percentage >= 90 ? 'Excellent' : 
-                         submission.percentage >= 80 ? 'Very Good' :
-                         submission.percentage >= 70 ? 'Good' :
-                         submission.percentage >= 60 ? 'Average' :
-                         submission.percentage >= 50 ? 'Below Average' : 'Poor'}
-                      </Text>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="submission-card-footer">
-                  <Text type="secondary" ellipsis={{ tooltip: submission.feedback }}>
-                    {submission.feedback}
-                  </Text>
-                </div>
-              </Card>
-            </Badge.Ribbon>
+                </Panel>
+              </Collapse>
+            </Card>
           </Col>
         ))}
       </Row>
@@ -386,24 +408,23 @@ const SubmissionsList = () => {
             <Row gutter={16}>
               <Col span={8}>
                 <Statistic 
-                  title="Total Submissions" 
-                  value={submissions.length} 
-                  prefix={<FileTextOutlined />} 
+                  title="Total Tests" 
+                  value={questionSets.length} 
+                  prefix={<BookOutlined />} 
                 />
               </Col>
               <Col span={8}>
                 <Statistic 
                   title="Avg Score" 
-                  value={Math.round(submissions.reduce((sum, sub) => sum + sub.percentage, 0) / (submissions.length || 1))} 
+                  value={Math.round(questionSets.reduce((sum, qs) => sum + (qs.score_percentage || 0), 0) / (questionSets.length || 1))} 
                   suffix="%" 
                   prefix={<TrophyOutlined />}
                 />
               </Col>
               <Col span={8}>
                 <Statistic 
-                  title="Evaluated" 
-                  value={submissions.filter(s => s.status === 'Evaluated').length} 
-                  suffix={`/${submissions.length}`}
+                  title="Questions Answered" 
+                  value={questionSets.reduce((sum, qs) => sum + (qs.questions?.length || 0), 0)} 
                   prefix={<CheckCircleOutlined />}
                 />
               </Col>
@@ -418,25 +439,21 @@ const SubmissionsList = () => {
         </div>
       ) : (
         <>
-          {submissions.length === 0 ? (
+          {questionSets.length === 0 ? (
             <Empty description="No submissions found" />
           ) : (
             <div className="submissions-view">
-              {renderSubmissionCards()}
-              <Card title="Submissions Table View" className="submissions-table-card">
-                <Table
-                  columns={columns}
-                  dataSource={submissions}
-                  pagination={{ pageSize: 10 }}
-                  rowKey="id"
-                />
-              </Card>
+              <Tabs defaultActiveKey="cards">
+                <TabPane tab="Question Sets" key="cards">
+                  {renderQuestionSetCards()}
+                </TabPane>
+              </Tabs>
             </div>
           )}
         </>
       )}
       
-      {renderSubmissionDrawer()}
+      {renderQuestionDrawer()}
     </div>
   );
 };
