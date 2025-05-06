@@ -55,7 +55,7 @@ CREATE TABLE student (
 -- Create Teacher table
 CREATE TABLE teacher (
     user_id UUID PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
-    designation TEXT NOT NULL,
+    designation TEXT NOT NULL
 );
 
 -- Create Moderator table
