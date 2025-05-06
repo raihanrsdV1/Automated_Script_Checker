@@ -144,7 +144,9 @@ async def get_user_submissions(user=Depends(require_role(['student']))):
                     total_obtained = 0
                     total_possible = 0
                     
+                    details_exist = False
                     for detail in cur.fetchall():
+                        details_exist = True
                         obtained_marks = detail[1]
                         total_marks = detail[5]
                         
@@ -159,6 +161,38 @@ async def get_user_submissions(user=Depends(require_role(['student']))):
                         
                         total_obtained += obtained_marks
                         total_possible += total_marks
+                    
+                    # If no evaluation details exist, get all rubrics for this question
+                    if not details_exist:
+                        cur.execute(
+                            """
+                            SELECT 
+                                r.id, r.rubric_text, r.marks, r.serial_number
+                            FROM 
+                                rubric r
+                            WHERE 
+                                r.question_id = %s
+                            ORDER BY 
+                                r.serial_number
+                            """,
+                            (question_id,)
+                        )
+                        
+                        for rubric in cur.fetchall():
+                            evaluation_details.append({
+                                "id": None,  # No evaluation detail id yet
+                                "obtained_marks": 0,  # No marks obtained yet
+                                "explanation": "Not evaluated yet",
+                                "serial_number": rubric[3],
+                                "rubric_text": rubric[1],
+                                "total_marks": rubric[2]
+                            })
+                            
+                            total_possible += rubric[2]  # Add to total possible marks
+                        
+                        # Set PDF URL to null and extracted_text to indicate no answer
+                        questions_map[question_id]["solution_pdf_url"] = None
+                        questions_map[question_id]["extracted_text"] = "This question wasn't answered"
                     
                     # Update the question with its evaluation details and totals
                     questions_map[question_id]["evaluation_details"] = evaluation_details

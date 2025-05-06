@@ -12,6 +12,8 @@ from submissions import submit as submit_s, retrieve as retrieve_s, recheck as r
 from subjects import subjects_router  # Import the new subjects router
 from tests import router as tests_router  # Import the new tests router
 from classes import retrieve as retrieve_c  # Import the new classes router
+from llm import evaluate as evaluate_llm  # Import the LLM evaluation router
+from llm import batch_evaluate as batch_evaluate_llm  # Import the LLM batch evaluation router
 from database.db_connection import connect # Fix import to use connect instead of get_db_connection
 # from utils.auth import verify_token # Commented out as auth is disabled for now
 from utils.error_handler import http_exception_handler
@@ -78,6 +80,10 @@ app.include_router(tests_router, prefix="/api/tests", tags=["Tests"]) #, depende
 
 # Class Management Routes
 app.include_router(retrieve_c.router, prefix="/api/classes", tags=["Classes"]) #, dependencies=[Depends(verify_token)])
+
+# LLM Evaluation Routes 
+app.include_router(evaluate_llm.router, prefix="/api/llm/evaluate", tags=["LLM"]) #, dependencies=[Depends(verify_token)])
+app.include_router(batch_evaluate_llm.router, prefix="/api/llm/evaluate", tags=["LLM"]) #, dependencies=[Depends(verify_token)])
 
 # Submission Management Routes (Protected - Auth Disabled)
 app.include_router(submit_s.router, prefix="/api/submissions", tags=["Submissions"]) #, dependencies=[Depends(verify_token)])

@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # LLM API endpoint (Kaggle via ngrok)
-LLM_EVALUATE_ENDPOINT = "https://1502-34-171-175-28.ngrok-free.app/evaluate"
+LLM_EVALUATE_ENDPOINT = "https://4ae8-104-196-180-232.ngrok-free.app/evaluate"
 
 router = APIRouter()
 
@@ -87,7 +87,7 @@ async def evaluate_submission(evaluation_id: str):
         # Create rubric text in format expected by LLM API
         rubric_text = "\n".join([f"{i+1}. {r[1]} ({r[2]} marks)" for i, r in enumerate(rubrics)])
         
-        # 3. Prepare data for LLM API in the expected format
+        # 3. Prepare data for LLM API in the expected format - array of objects with question, answer, rubric
         evaluation_input = [
             {
                 "question": question_text,
@@ -99,6 +99,9 @@ async def evaluate_submission(evaluation_id: str):
         # 4. Call LLM API via ngrok
         async with aiohttp.ClientSession() as session:
             logger.info(f"Sending evaluation request to LLM API for evaluation {evaluation_id}")
+            # Log the exact payload being sent to LLM API
+            logger.info(f"Request payload: {json.dumps(evaluation_input, indent=2)}")
+            
             try:
                 async with session.post(
                     LLM_EVALUATE_ENDPOINT,
@@ -130,7 +133,7 @@ async def evaluate_submission(evaluation_id: str):
                     logger.info(f"Received response from LLM API for evaluation {evaluation_id}")
                     
                     # The LLM response is the aggregated results with majority voting
-                    # Format should be: List[List[Tuple[rubric_text, score, total, explanation]]]
+                    # Format: List of lists of tuples (rubric_text, score, total, explanation)
                     if not llm_response or not isinstance(llm_response, list) or len(llm_response) == 0:
                         # Update evaluation status to failed
                         cur.execute(
@@ -150,7 +153,7 @@ async def evaluate_submission(evaluation_id: str):
                         
                     # Since we only sent one question-answer pair, we take the first result
                     evaluation_results = llm_response[0]
-                    print(evaluation_results)
+                    logger.info(f"Evaluation results: {evaluation_results}")
                     
                     # Calculate total score and generate detailed results
                     total_score = 0

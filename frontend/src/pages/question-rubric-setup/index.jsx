@@ -41,6 +41,7 @@ export default function QuestionRubricSetup() {
   const [showAddToSetForm, setShowAddToSetForm] = useState(false);
   const [selectedQuestionSet, setSelectedQuestionSet] = useState(null);
   const [currentQuestionSetId, setCurrentQuestionSetId] = useState(null);
+  const [editingQuestionSet, setEditingQuestionSet] = useState(null);
   
   // State for view mode
   const [viewMode, setViewMode] = useState('questions'); // 'questions' or 'sets'
@@ -199,6 +200,31 @@ export default function QuestionRubricSetup() {
     }
   };
 
+  const handleUpdateQuestionSet = async (data) => {
+    try {
+      setIsLoading(true);
+      await updateQuestionSet(editingQuestionSet.id, data);
+      
+      // Refresh data
+      const updatedSetData = await fetchQuestionSetById(editingQuestionSet.id);
+      
+      // Update in the list
+      setQuestionSets(
+        questionSets.map(set => 
+          set.id === editingQuestionSet.id ? updatedSetData : set
+        )
+      );
+      
+      // Reset editing state
+      setEditingQuestionSet(null);
+    } catch (error) {
+      console.error('Error updating question set:', error);
+      alert('Failed to update question set. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // If we're viewing a question set detail
   if (selectedQuestionSet) {
     return (
@@ -208,8 +234,9 @@ export default function QuestionRubricSetup() {
             questionSet={selectedQuestionSet}
             onBack={() => setSelectedQuestionSet(null)}
             onEdit={(id) => {
-              // Here you would open the edit form for the question set
-              alert('Edit question set ' + id);
+              // Set the editing state and go back to the main view
+              setEditingQuestionSet(selectedQuestionSet);
+              setSelectedQuestionSet(null);
             }}
             onAddQuestion={(id) => {
               setCurrentQuestionSetId(id);
@@ -285,7 +312,13 @@ export default function QuestionRubricSetup() {
           />
         )}
         
-        {showQuestionSetForm && (
+        {editingQuestionSet ? (
+          <QuestionSetForm
+            questionSetData={editingQuestionSet}
+            onSubmit={handleUpdateQuestionSet}
+            onCancel={() => setEditingQuestionSet(null)}
+          />
+        ) : showQuestionSetForm && (
           <QuestionSetForm
             onSubmit={handleCreateQuestionSet}
             onCancel={() => setShowQuestionSetForm(false)}
@@ -322,8 +355,11 @@ export default function QuestionRubricSetup() {
                 data={set}
                 onView={handleViewQuestionSet}
                 onEdit={(id) => {
-                  // Here you would open the edit form for the question set
-                  alert('Edit question set ' + id);
+                  // Fetch the full question set data and open the edit form
+                  const setToEdit = questionSets.find(s => s.id === id);
+                  if (setToEdit) {
+                    setEditingQuestionSet(setToEdit);
+                  }
                 }}
                 onDelete={handleDeleteQuestionSet}
                 onAddQuestion={(id) => {

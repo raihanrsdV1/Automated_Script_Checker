@@ -3,11 +3,21 @@ import { Table, Card, Spin, Empty, Typography, Tag, Button, message, Drawer, Col
 import { ClockCircleOutlined, CheckCircleOutlined, FileTextOutlined, BookOutlined, TrophyOutlined, FilePdfOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { API_URL } from '../../../config';
+import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import ReactMarkdown from 'react-markdown';
 import './style.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
 const { TabPane } = Tabs;
+
+// Simple MathJax configuration for LaTeX rendering
+const mathJaxConfig = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  }
+};
 
 const SubmissionsList = () => {
   const [loading, setLoading] = useState(true);
@@ -31,62 +41,90 @@ const SubmissionsList = () => {
         // Process question sets if available, otherwise use dummy data
         let processedQuestionSets = [];
         
-        if (response.data && response.data.length > 0) {
-          // Process the real data from API
-          processedQuestionSets = response.data.map(questionSet => {
-            console.log('Processing question set:', questionSet);
+        // Check if we have valid data in the response and handle different response formats
+        if (response.data) {
+          let submissionsData = [];
+          
+          // Handle various possible response structures
+          if (Array.isArray(response.data)) {
+            // If response.data is already an array of submissions
+            submissionsData = response.data;
+          } else if (response.data.submissions && Array.isArray(response.data.submissions)) {
+            // If response.data has a submissions property that is an array
+            submissionsData = response.data.submissions;
+          } else if (typeof response.data === 'object') {
+            // If response.data is an object with other properties
+            // Try to find an array property that might contain submissions
+            const possibleArrayProps = Object.keys(response.data).filter(key => 
+              Array.isArray(response.data[key])
+            );
             
-            // Process questions in this set
-            const questions = questionSet.questions || [];
-            let totalObtainedMarks = 0;
-            let totalPossibleMarks = 0;
-            
-            // Process each question and calculate totals
-            const processedQuestions = questions.map(question => {
-              console.log('Processing question:', question);
+            if (possibleArrayProps.length > 0) {
+              // Use the first array property found
+              submissionsData = response.data[possibleArrayProps[0]];
+            }
+          }
+          
+          if (submissionsData.length > 0) {
+            // Process the real data from API
+            processedQuestionSets = submissionsData.map(questionSet => {
+              console.log('Processing question set:', questionSet);
               
-              // Status text formatting
-              const statusText = question.status === 'completed' ? 'Evaluated' : 
-                                 question.status === 'pending' ? 'Under Review' : 'Failed';
+              // Process questions in this set
+              const questions = questionSet.questions || [];
+              let totalObtainedMarks = 0;
+              let totalPossibleMarks = 0;
               
-              // Calculate percentage for this question
-              const totalMarks = question.total_marks || 0;
-              const obtainedMarks = question.result || 0;
-              totalObtainedMarks += obtainedMarks;
-              totalPossibleMarks += totalMarks;
+              // Process each question and calculate totals
+              const processedQuestions = questions.map(question => {
+                console.log('Processing question:', question);
+                
+                // Status text formatting
+                const statusText = question.status === 'completed' ? 'Evaluated' : 
+                                  question.status === 'pending' ? 'Under Review' : 'Failed';
+                
+                // Calculate percentage for this question
+                const totalMarks = question.total_marks || 0;
+                const obtainedMarks = question.result || 0;
+                totalObtainedMarks += obtainedMarks;
+                totalPossibleMarks += totalMarks;
+                
+                const percentage = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
+                
+                return {
+                  ...question,
+                  key: question.id,
+                  status: statusText,
+                  percentage
+                };
+              });
               
-              const percentage = totalMarks > 0 ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
+              // Calculate scores and percentages for the question set
+              const scorePercentage = totalPossibleMarks > 0 
+                ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) 
+                : 0;
+              
+              const completionPercentage = 100; // Assuming all questions in the set were attempted
               
               return {
-                ...question,
-                key: question.id,
-                status: statusText,
-                percentage
+                ...questionSet,
+                key: questionSet.id,
+                questions: processedQuestions,
+                total_marks_obtained: totalObtainedMarks,
+                total_possible_marks: totalPossibleMarks,
+                score_percentage: scorePercentage,
+                completion_percentage: completionPercentage,
+                submitted_at: questionSet.first_attempt_date 
+                  ? new Date(questionSet.first_attempt_date).toLocaleString() 
+                  : 'Unknown date'
               };
             });
             
-            // Calculate scores and percentages for the question set
-            const scorePercentage = totalPossibleMarks > 0 
-              ? Math.round((totalObtainedMarks / totalPossibleMarks) * 100) 
-              : 0;
-            
-            const completionPercentage = 100; // Assuming all questions in the set were attempted
-            
-            return {
-              ...questionSet,
-              key: questionSet.id,
-              questions: processedQuestions,
-              total_marks_obtained: totalObtainedMarks,
-              total_possible_marks: totalPossibleMarks,
-              score_percentage: scorePercentage,
-              completion_percentage: completionPercentage,
-              submitted_at: questionSet.first_attempt_date 
-                ? new Date(questionSet.first_attempt_date).toLocaleString() 
-                : 'Unknown date'
-            };
-          });
-          
-          console.log('Processed question sets:', processedQuestionSets);
+            console.log('Processed question sets:', processedQuestionSets);
+          } else {
+            console.log('No submission data found in API response, using dummy data');
+            processedQuestionSets = generateDummyQuestionSets();
+          }
         } else {
           console.log('No data from API, using dummy data');
           // Generate dummy question sets
@@ -212,7 +250,7 @@ const SubmissionsList = () => {
     
     return (
       <Drawer
-        title={`Question: ${selectedQuestion.question_text}`}
+        title={selectedQuestion.question_text}
         placement="right"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
@@ -260,9 +298,9 @@ const SubmissionsList = () => {
           
           <Divider orientation="left">Your Answer</Divider>
           <div className="user-answer mb-4">
-            <Paragraph className="p-3 bg-gray-50 border rounded">
+            <div className="p-3 bg-gray-50 border rounded">
               {selectedQuestion.extracted_text || 'No text extracted from PDF'}
-            </Paragraph>
+            </div>
           </div>
           
           <Divider orientation="left">Evaluation</Divider>
@@ -275,13 +313,18 @@ const SubmissionsList = () => {
                   <List.Item className="rubric-item">
                     <Card className="rubric-card">
                       <div className="rubric-header">
-                        <Text strong>Rubric {index + 1}: {detail.rubric_text}</Text>
+                        <Text strong>Rubric {index + 1}: </Text>
+                        <div className="rubric-text">
+                          {detail.rubric_text}
+                        </div>
                         <Tag color={detail.obtained_marks >= detail.total_marks * 0.7 ? 'green' : 'orange'}>
                           {detail.obtained_marks}/{detail.total_marks} marks
                         </Tag>
                       </div>
                       <div className="rubric-explanation mt-2">
-                        <Paragraph>{detail.explanation}</Paragraph>
+                        <ReactMarkdown>
+                          {detail.explanation}
+                        </ReactMarkdown>
                       </div>
                     </Card>
                   </List.Item>
@@ -370,7 +413,11 @@ const SubmissionsList = () => {
                         ]}
                       >
                         <List.Item.Meta
-                          title={<Text ellipsis>{question.question_text}</Text>}
+                          title={
+                            <div className="question-title">
+                              {question.question_text}
+                            </div>
+                          }
                           description={
                             <Space>
                               <span>{question.result}/{question.total_marks} marks</span>
@@ -396,65 +443,67 @@ const SubmissionsList = () => {
   };
 
   return (
-    <div className="submissions-list-container">
-      <div className="page-header">
-        <div>
-          <Title level={2}>My Submissions</Title>
-          <Text type="secondary">View your test submissions and results</Text>
+    <MathJaxContext config={mathJaxConfig}>
+      <div className="submissions-list-container">
+        <div className="page-header">
+          <div>
+            <Title level={2}>My Submissions</Title>
+            <Text type="secondary">View your test submissions and results</Text>
+          </div>
+          
+          <div className="submission-stats-summary">
+            <Card className="stats-summary-card">
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Statistic 
+                    title="Total Tests" 
+                    value={questionSets.length} 
+                    prefix={<BookOutlined />} 
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic 
+                    title="Avg Score" 
+                    value={Math.round(questionSets.reduce((sum, qs) => sum + (qs.score_percentage || 0), 0) / (questionSets.length || 1))} 
+                    suffix="%" 
+                    prefix={<TrophyOutlined />}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic 
+                    title="Questions Answered" 
+                    value={questionSets.reduce((sum, qs) => sum + (qs.questions?.length || 0), 0)} 
+                    prefix={<CheckCircleOutlined />}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          </div>
         </div>
         
-        <div className="submission-stats-summary">
-          <Card className="stats-summary-card">
-            <Row gutter={16}>
-              <Col span={8}>
-                <Statistic 
-                  title="Total Tests" 
-                  value={questionSets.length} 
-                  prefix={<BookOutlined />} 
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic 
-                  title="Avg Score" 
-                  value={Math.round(questionSets.reduce((sum, qs) => sum + (qs.score_percentage || 0), 0) / (questionSets.length || 1))} 
-                  suffix="%" 
-                  prefix={<TrophyOutlined />}
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic 
-                  title="Questions Answered" 
-                  value={questionSets.reduce((sum, qs) => sum + (qs.questions?.length || 0), 0)} 
-                  prefix={<CheckCircleOutlined />}
-                />
-              </Col>
-            </Row>
-          </Card>
-        </div>
+        {loading ? (
+          <div className="loading-container">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <>
+            {questionSets.length === 0 ? (
+              <Empty description="No submissions found" />
+            ) : (
+              <div className="submissions-view">
+                <Tabs defaultActiveKey="cards">
+                  <TabPane tab="Question Sets" key="cards">
+                    {renderQuestionSetCards()}
+                  </TabPane>
+                </Tabs>
+              </div>
+            )}
+          </>
+        )}
+        
+        {renderQuestionDrawer()}
       </div>
-      
-      {loading ? (
-        <div className="loading-container">
-          <Spin size="large" />
-        </div>
-      ) : (
-        <>
-          {questionSets.length === 0 ? (
-            <Empty description="No submissions found" />
-          ) : (
-            <div className="submissions-view">
-              <Tabs defaultActiveKey="cards">
-                <TabPane tab="Question Sets" key="cards">
-                  {renderQuestionSetCards()}
-                </TabPane>
-              </Tabs>
-            </div>
-          )}
-        </>
-      )}
-      
-      {renderQuestionDrawer()}
-    </div>
+    </MathJaxContext>
   );
 };
 

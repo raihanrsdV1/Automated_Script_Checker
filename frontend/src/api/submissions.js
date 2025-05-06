@@ -89,6 +89,84 @@ export const createSubmission = async (questionId, questionSetId, file) => {
   }
 };
 
+// Create multiple submissions at once
+export const createBatchSubmissions = async (submissions, questionSetId) => {
+  try {
+    // First, calculate total size to warn if it's too large
+    const totalSizeBytes = submissions.reduce((total, sub) => total + (sub.file?.size || 0), 0);
+    const totalSizeMB = totalSizeBytes / (1024 * 1024);
+    
+    // Warn if total size is large but still attempt the upload
+    if (totalSizeMB > 30) {
+      console.warn(`Large upload detected: ${totalSizeMB.toFixed(2)}MB total. This may cause browser performance issues.`);
+    }
+
+    const formData = new FormData();
+    
+    // Add each file with a unique key
+    submissions.forEach(submission => {
+      if (submission.file) {
+        // Use a modified file name to avoid name collisions
+        const uniqueFileName = `${submission.questionId}_${Date.now()}_${submission.file.name.replace(/\s+/g, '_')}`;
+        formData.append('files', submission.file, uniqueFileName);
+        
+        // Store the unique filename as the file_key
+        submission.fileKey = uniqueFileName;
+      }
+    });
+    
+    // Create batch data structure
+    const batchData = submissions.map(submission => ({
+      question_id: submission.questionId,
+      file_key: submission.fileKey
+    }));
+    
+    // Add the batch data as a JSON string
+    formData.append('batch_data', JSON.stringify(batchData));
+    
+    // Add question set ID if provided
+    if (questionSetId) {
+      formData.append('question_set_id', questionSetId);
+    }
+    
+    // Set a longer timeout for larger uploads
+    const response = await axios.post(`${API_URL}/submissions/batch`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 120000, // 2 minutes timeout for larger uploads
+      onUploadProgress: (progressEvent) => {
+        // Implement progress tracking
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        console.log(`Upload progress: ${percentCompleted}%`);
+      }
+    });
+    
+    // Handle the response which now returns processing status
+    return {
+      submissions: response.data.submissions,
+      message: response.data.message
+    };
+  } catch (error) {
+    console.error('Error creating batch submissions:', error);
+    
+    // Enhanced error reporting
+    if (error.response) {
+      if (error.response.status === 413) {
+        throw new Error('Files too large for the server to handle. Please reduce file sizes.');
+      } else if (error.response.status === 400 && error.response.data?.detail?.includes('Too many files')) {
+        throw new Error(error.response.data.detail);
+      } else if (error.response.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      throw new Error('Upload timed out. Please try with smaller files or a better connection.');
+    }
+    
+    throw error;
+  }
+};
+
 // Request a recheck for a submission
 export const requestRecheck = async (submissionId, issueDetail) => {
   try {

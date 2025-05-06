@@ -12,6 +12,18 @@ export default function QuestionSetForm({ questionSetData = null, onSubmit, onCa
   const [loadingSubjects, setLoadingSubjects] = useState(true);
   const [error, setError] = useState('');
 
+  // Get the current user ID from localStorage (for teacher_id)
+  const getUserId = () => {
+    try {
+      const userId = localStorage.getItem('user_id');
+      console.log('Current user ID for question set creation:', userId);
+      return userId || null;
+    } catch (error) {
+      console.error('Error getting user ID from localStorage:', error);
+      return null;
+    }
+  };
+
   // Load subjects from API
   useEffect(() => {
     const getSubjects = async () => {
@@ -62,6 +74,13 @@ export default function QuestionSetForm({ questionSetData = null, onSubmit, onCa
       return;
     }
 
+    // Get teacher_id
+    const teacherId = getUserId();
+    if (!teacherId) {
+      setError('User ID not found. Please log in again.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     
@@ -69,7 +88,8 @@ export default function QuestionSetForm({ questionSetData = null, onSubmit, onCa
       await onSubmit({
         name,
         description,
-        subject_id: subjectId
+        subject_id: subjectId,
+        teacher_id: teacherId
       });
       
       // Form will be closed by the parent component after successful submission

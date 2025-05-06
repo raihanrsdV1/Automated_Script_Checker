@@ -1,14 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Spin, Empty, Tag, Typography, Modal, Tabs, message, Alert } from 'antd';
-import { FileTextOutlined, ClockCircleOutlined, FormOutlined, CheckCircleOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Button, Spin, Empty, Tag, Typography, Modal, Tabs, message, Alert, Tooltip, Progress } from 'antd';
+import { 
+  FileTextOutlined, 
+  ClockCircleOutlined, 
+  FormOutlined, 
+  CheckCircleOutlined, 
+  ArrowLeftOutlined, 
+  CloudUploadOutlined, 
+  UploadOutlined,
+  FileDoneOutlined 
+} from '@ant-design/icons';
 import { fetchTests, fetchTestById } from '../../../api/tests';
-import { fetchUserSubmissions } from '../../../api/submissions';
+import { fetchUserSubmissions, createBatchSubmissions } from '../../../api/submissions';
 import './style.css';
 import SubmissionForm from '../../user-dashboard/components/SubmissionForm';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
+
+// Add optimized MathJax configuration
+const mathJaxConfig = {
+  loader: { load: ["[tex]/html"] },
+  tex: {
+    packages: { "[+]": ["html"] },
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  },
+  startup: {
+    typeset: false,  // Prevents automatic typesetting on page load
+  },
+  options: {
+    enableMenu: false,  // Disable the right-click menu
+    menuOptions: {
+      settings: {}
+    },
+    processing: {
+      limitRenderSize: 5000  // Limit size of math to render to prevent crashes
+    },
+    renderActions: {
+      addMenu: [], // Disable menu building
+      checkLoading: []  // Disable loading check (saves resources)
+    }
+  },
+  chtml: {
+    mtextInheritFont: true  // Improves performance for mixed content
+  }
+};
 
 const TestsList = () => {
   const [loading, setLoading] = useState(true);
@@ -21,6 +59,12 @@ const TestsList = () => {
   const [testError, setTestError] = useState(null);
   const [submittedQuestions, setSubmittedQuestions] = useState([]);
   const [evaluatedQuestions, setEvaluatedQuestions] = useState([]);
+  
+  // New state for batch submission
+  const [questionFiles, setQuestionFiles] = useState({});
+  const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
+  const [batchSubmitError, setBatchSubmitError] = useState(null);
+  const [batchSubmitSuccess, setBatchSubmitSuccess] = useState(false);
 
   useEffect(() => {
     const loadTests = async () => {
@@ -90,6 +134,9 @@ const TestsList = () => {
       setActiveTest(detailedTest);
       setSubmittedQuestions([]);
       setEvaluatedQuestions([]);
+      setQuestionFiles({}); // Reset question files
+      setBatchSubmitSuccess(false);
+      setBatchSubmitError(null);
       setIsModalVisible(false); // Close the details modal if it's open
     } catch (error) {
       console.error('Error starting test:', error);
@@ -121,6 +168,124 @@ const TestsList = () => {
   const handleViewEvaluations = () => {
     // Navigate to submissions tab in the main interface
     window.location.href = '/submissions';
+  };
+
+  // Handle file changes for batch submission
+  const handleFileChange = (questionId, file) => {
+    if (file) {
+      // Add file to the map
+      setQuestionFiles(prev => ({
+        ...prev,
+        [questionId]: file
+      }));
+      
+      // Clear any previous batch submission errors when a new file is added
+      if (batchSubmitError) {
+        setBatchSubmitError(null);
+      }
+    } else {
+      // Remove file from the map if set to null
+      setQuestionFiles(prev => {
+        const updated = { ...prev };
+        delete updated[questionId];
+        return updated;
+      });
+    }
+  };
+  
+  // Submit all answers at once
+  const handleBatchSubmit = async () => {
+    // Validate that there are files to submit
+    const submissions = Object.entries(questionFiles).map(([questionId, file]) => ({
+      questionId,
+      file
+    }));
+    
+    if (submissions.length === 0) {
+      setBatchSubmitError("Please upload at least one answer before submitting.");
+      return;
+    }
+    
+    // Check total size - warn if it's above a certain threshold
+    const totalSizeBytes = submissions.reduce((total, sub) => total + (sub.file?.size || 0), 0);
+    const totalSizeMB = totalSizeBytes / (1024 * 1024);
+    
+    if (totalSizeMB > 50) {
+      // Show a warning if total upload is over 50MB
+      message.warning(
+        `You're trying to upload ${totalSizeMB.toFixed(1)}MB which is quite large. ` + 
+        `This may take some time and could cause browser performance issues.`
+      );
+    }
+    
+    setIsBatchSubmitting(true);
+    setBatchSubmitError(null);
+    
+    try {
+      // Add progress indicator for large uploads
+      if (totalSizeMB > 20) {
+        message.loading({
+          content: 'Uploading large files, please wait...',
+          duration: 0,
+          key: 'uploadProgress'
+        });
+      }
+      
+      const result = await createBatchSubmissions(submissions, activeTest.id);
+      
+      // Clear progress indicator
+      if (totalSizeMB > 20) {
+        message.destroy('uploadProgress');
+      }
+      
+      // Update state to reflect successful submission
+      message.success(result.message || `Submissions are being processed in the background`);
+      
+      // The submissions are now processing in the background
+      setBatchSubmitSuccess(true);
+      
+      // Show a notice about background processing
+      message.info({
+        content: 'Your files have been uploaded and are being processed. You can continue working.',
+        duration: 8, // Show for 8 seconds
+      });
+      
+      // Clear the question files
+      setQuestionFiles({});
+      
+      // Update submitted questions from the result
+      if (result.submissions && result.submissions.length > 0) {
+        const newSubmittedQuestions = [
+          ...submittedQuestions,
+          ...result.submissions.map(sub => sub.question_id)
+        ];
+        setSubmittedQuestions([...new Set(newSubmittedQuestions)]); // Remove duplicates
+      }
+      
+    } catch (error) {
+      console.error('Error submitting batch answers:', error);
+      
+      // Clear progress indicator if it exists
+      message.destroy('uploadProgress');
+      
+      if (error.response?.status === 413) {
+        setBatchSubmitError('One or more files are too large. Please upload smaller PDF files (under 10MB each).');
+      } else if (error.code === 'ECONNABORTED') {
+        setBatchSubmitError('Upload timed out. Please try with smaller files or a better connection.');
+      } else if (error.message && error.message.includes('too large')) {
+        setBatchSubmitError('Files too large for the server to handle. Please reduce file sizes or upload them individually.');
+      } else if (error.message && error.message.includes('Too many files')) {
+        setBatchSubmitError('Too many files in batch. Please upload fewer files at once.');
+      } else if (error.response?.data?.detail) {
+        setBatchSubmitError(error.response.data.detail);
+      } else if (error.message) {
+        setBatchSubmitError(error.message);
+      } else {
+        setBatchSubmitError('Failed to submit your answers. Please try uploading one at a time or reduce file sizes.');
+      }
+    } finally {
+      setIsBatchSubmitting(false);
+    }
   };
 
   const renderTestCard = (test) => (
@@ -244,83 +409,176 @@ const TestsList = () => {
   // If a test is active, show the test taking interface with improved UI
   if (activeTest) {
     return (
-      <MathJaxContext>
-        <div className="test-taking-container">
-          <div className="test-header">
-            <Button
-              type="link"
-              onClick={handleBackToTests}
-              className="back-to-tests-btn"
-            >
-              <ArrowLeftOutlined /> Back to Tests
-            </Button>
-            <Title level={3}>{activeTest.name}</Title>
-          </div>
+      <div className="test-taking-container">
+        <div className="test-header">
+          <Button
+            type="link"
+            onClick={handleBackToTests}
+            className="back-to-tests-btn"
+          >
+            <ArrowLeftOutlined /> Back to Tests
+          </Button>
+          <Title level={3}>{activeTest.name}</Title>
+        </div>
+        
+        <div className="test-meta">
+          <Tag color="blue">{activeTest.subject_name}</Tag>
           
-          <div className="test-meta">
-            <Tag color="blue">{activeTest.subject_name}</Tag>
-            
-            {activeTest.description && (
-              <Paragraph>{activeTest.description}</Paragraph>
-            )}
-            
-            <Text type="secondary">
-              This test contains {activeTest.questions ? activeTest.questions.length : 0} questions
-            </Text>
-          </div>
+          {activeTest.description && (
+            <Paragraph>{activeTest.description}</Paragraph>
+          )}
+          
+          <Text type="secondary">
+            This test contains {activeTest.questions ? activeTest.questions.length : 0} questions
+          </Text>
+        </div>
 
-          {loadingTest ? (
-            <div className="loading-container">
-              <Spin size="large" />
-              <div className="mt-2">Loading test questions...</div>
-            </div>
-          ) : testError ? (
-            <div className="test-error">
-              <Alert type="error" message={testError} />
-            </div>
-          ) : activeTest.questions && activeTest.questions.length > 0 ? (
-            <div>
-              <div className="test-questions-header">
-                <Title level={4} className="test-questions-title">Test Questions</Title>
-                
-                {evaluatedQuestions.length > 0 && (
-                  <Button
-                    onClick={handleViewEvaluations}
-                    type="primary"
-                  >
-                    View Evaluation Results
-                  </Button>
-                )}
-              </div>
+        {loadingTest ? (
+          <div className="loading-container">
+            <Spin size="large" />
+            <div className="mt-2">Loading test questions...</div>
+          </div>
+        ) : testError ? (
+          <div className="test-error">
+            <Alert type="error" message={testError} />
+          </div>
+        ) : activeTest.questions && activeTest.questions.length > 0 ? (
+          <div>
+            <div className="test-questions-header">
+              <Title level={4} className="test-questions-title">Test Questions</Title>
               
               {evaluatedQuestions.length > 0 && (
-                <div className="evaluation-status">
-                  <Text>
-                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                    <strong>{evaluatedQuestions.length}</strong> {evaluatedQuestions.length === 1 ? 'question has' : 'questions have'} been evaluated.
-                  </Text>
+                <Button
+                  onClick={handleViewEvaluations}
+                  type="primary"
+                >
+                  View Evaluation Results
+                </Button>
+              )}
+            </div>
+            
+            {/* Batch Submission Card */}
+            <div className="batch-submission-card bg-white p-4 mb-6 rounded-lg shadow-sm border border-gray-200">
+              <div className="flex justify-between items-center mb-3 flex-wrap">
+                <div className="mb-2 md:mb-0">
+                  <Title level={5} className="mb-0">Submit All Answers</Title>
+                  <Text type="secondary">Upload your answers for each question and submit them all at once</Text>
                 </div>
+                <div className="text-right">
+                  <div className="mb-1">
+                    {Object.keys(questionFiles).length > 0 ? (
+                      <Tag color={
+                        Object.keys(questionFiles).length === activeTest.questions.length 
+                          ? "success" 
+                          : "warning"
+                      }>
+                        {Object.keys(questionFiles).length} of {activeTest.questions.length} answers ready
+                      </Tag>
+                    ) : (
+                      <Tag color="error">No answers uploaded yet</Tag>
+                    )}
+                  </div>
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<CloudUploadOutlined />}
+                    loading={isBatchSubmitting}
+                    onClick={handleBatchSubmit}
+                    disabled={Object.keys(questionFiles).length === 0 || batchSubmitSuccess}
+                    className="w-full md:w-auto"
+                  >
+                    {isBatchSubmitting ? 'Submitting...' : 'Submit All Answers'}
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="mb-3">
+                <div className="bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="h-2 rounded-full transition-all duration-300 ease-in-out" 
+                    style={{ 
+                      width: `${(Object.keys(questionFiles).length / activeTest.questions.length) * 100}%`,
+                      backgroundColor: Object.keys(questionFiles).length > 0 
+                        ? (Object.keys(questionFiles).length === activeTest.questions.length ? '#52c41a' : '#faad14') 
+                        : '#f5f5f5'
+                    }}
+                  />
+                </div>
+              </div>
+              
+              {/* Success/Error Messages */}
+              {batchSubmitSuccess && (
+                <Alert
+                  type="success"
+                  message="All answers submitted successfully!"
+                  description="Your answers have been uploaded and are being processed. Check the Submissions page to see your results."
+                  showIcon
+                  className="mb-3"
+                />
               )}
               
-              <div className="test-questions-list">
-                {activeTest.questions.map((question, index) => (
-                  <div key={question.id} className="test-question-card">
-                    <SubmissionForm
-                      questionSetId={activeTest.id}
-                      question={question}
-                      onSubmitSuccess={handleSubmitSuccess}
-                    />
-                  </div>
-                ))}
+              {batchSubmitError && (
+                <Alert
+                  type="error"
+                  message="Error submitting answers"
+                  description={batchSubmitError}
+                  showIcon
+                  className="mb-3"
+                />
+              )}
+              
+              {/* Instructions */}
+              <Text type="secondary" className="text-sm">
+                Upload a PDF file for each question below. Once you have uploaded all answers, click "Submit All Answers" to submit them in one go.
+              </Text>
+            </div>
+            
+            {evaluatedQuestions.length > 0 && (
+              <div className="evaluation-status">
+                <Text>
+                  <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
+                  <strong>{evaluatedQuestions.length}</strong> {evaluatedQuestions.length === 1 ? 'question has' : 'questions have'} been evaluated.
+                </Text>
               </div>
+            )}
+            
+            <div className="test-questions-list">
+              {/* Remove MathJaxContext wrapper */}
+              {activeTest.questions.map((question, index) => (
+                <div key={question.id} className="test-question-card">
+                  <SubmissionForm
+                    questionSetId={activeTest.id}
+                    question={question}
+                    onSubmitSuccess={handleSubmitSuccess}
+                    onFileChange={handleFileChange}
+                    showSubmitButton={false} // Hide individual submit buttons
+                  />
+                </div>
+              ))}
             </div>
-          ) : (
-            <div className="empty-questions">
-              <Empty description="This test does not contain any questions." />
+            
+            {/* Floating Submit Button for Mobile */}
+            <div className="fixed bottom-4 right-4 md:hidden z-10">
+              <Tooltip title={`Submit all answers (${Object.keys(questionFiles).length}/${activeTest.questions.length})`}>
+                <Button
+                  type="primary"
+                  shape="circle"
+                  size="large"
+                  icon={<UploadOutlined />}
+                  onClick={handleBatchSubmit}
+                  disabled={Object.keys(questionFiles).length === 0 || isBatchSubmitting || batchSubmitSuccess}
+                  className={Object.keys(questionFiles).length > 0 ? "pulse-animation" : ""}
+                />
+              </Tooltip>
             </div>
-          )}
-        </div>
-      </MathJaxContext>
+          </div>
+        ) : (
+          <div className="empty-questions">
+            <Empty description="This test does not contain any questions." />
+          </div>
+        )}
+      </div>
     );
   }
 

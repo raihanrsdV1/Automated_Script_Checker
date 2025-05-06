@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createSubmission, evaluateSubmission } from '../../../api/submissions';
-import { MathJax } from 'better-react-mathjax';
+import { Button, Alert, Progress, Tooltip } from 'antd';
+import { 
+  DeleteOutlined, 
+  CheckCircleOutlined, 
+  UploadOutlined, 
+  FileTextOutlined, 
+  FilePdfOutlined
+} from '@ant-design/icons';
 
-function SubmissionForm({ questionSetId, question, onSubmitSuccess }) {
+function SubmissionForm({ questionSetId, question, onSubmitSuccess, onFileChange, showSubmitButton = true }) {
   const [file, setFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -10,6 +17,13 @@ function SubmissionForm({ questionSetId, question, onSubmitSuccess }) {
   const [success, setSuccess] = useState(false);
   const [submissionId, setSubmissionId] = useState(null);
   const [evaluationComplete, setEvaluationComplete] = useState(false);
+  
+  // Notify parent component when file changes
+  useEffect(() => {
+    if (onFileChange) {
+      onFileChange(question.id, file);
+    }
+  }, [file, question.id, onFileChange]);
   
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -118,21 +132,33 @@ function SubmissionForm({ questionSetId, question, onSubmitSuccess }) {
     }
   };
   
+  // Function to reset the file selector
+  const handleRemoveFile = () => {
+    setFile(null);
+    
+    // Reset file input
+    const fileInput = document.getElementById(`file-input-${question.id}`);
+    if (fileInput) {
+      fileInput.value = '';
+    }
+    
+    // Notify parent component
+    if (onFileChange) {
+      onFileChange(question.id, null);
+    }
+  };
+  
   return (
-    <div className="border rounded-lg p-4 mb-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+    <div className="border rounded-lg p-4 mb-4 bg-white shadow-sm">
       <div className="mb-3">
         <h4 className="font-semibold mb-1 text-lg">Question {question.order || "1"}</h4>
+        
+        {/* Simple question text display without MathJax */}
         <div className="text-sm bg-gray-50 p-4 rounded-md mb-2">
-          <MathJax>{question.question_text}</MathJax>
+          <p>{question.question_text}</p>
         </div>
         
-        {question.question_rubric && (
-          <div className="text-sm text-gray-600 mb-2 p-2 border-l-2 border-blue-200">
-            <p className="font-medium mb-1">Rubric:</p>
-            <p>{question.question_rubric}</p>
-          </div>
-        )}
-        
+        {/* Simple display for question marks */}
         {question.marks && (
           <div className="text-xs text-gray-600 mt-1 mb-2">
             <span className="font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
@@ -142,68 +168,102 @@ function SubmissionForm({ questionSetId, question, onSubmitSuccess }) {
         )}
       </div>
       
+      {/* Submission success state */}
       {submissionId && success ? (
-        <div className="mt-4">
-          <div className="mb-3 text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-100">
-            <p className="font-medium">Your answer has been submitted successfully!</p>
-            <p>PDF has been uploaded. Click "Evaluate" to process your submission.</p>
+        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+          <div className="flex items-start">
+            <CheckCircleOutlined className="text-green-500 mr-2 mt-0.5" />
+            <div>
+              <p className="font-medium">Your answer has been submitted successfully!</p>
+              {!evaluationComplete && (
+                <button
+                  onClick={handleEvaluate}
+                  className="mt-2 py-1.5 px-3 bg-green-600 text-white rounded hover:bg-green-700"
+                  disabled={isEvaluating}
+                >
+                  {isEvaluating ? 'Evaluating...' : 'Evaluate Submission'}
+                </button>
+              )}
+            </div>
           </div>
           
-          {evaluationComplete ? (
-            <div className="mb-3 text-sm text-blue-600 bg-blue-50 p-3 rounded-md border border-blue-100">
-              <p className="font-medium">Evaluation completed!</p>
-              <p>Your submission has been evaluated. Check the Submission History tab to see your results.</p>
+          {evaluationComplete && (
+            <div className="mt-2 text-blue-700">
+              <p>Evaluation completed! Check the Submissions page to see results.</p>
             </div>
-          ) : (
-            <button
-              onClick={handleEvaluate}
-              className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isEvaluating}
-            >
-              {isEvaluating ? 'Evaluating...' : 'Evaluate Submission'}
-            </button>
           )}
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-3">
+        <div className="mt-3">
+          {/* File upload section */}
           <div className="mb-3">
-            <label htmlFor={`file-input-${question.id}`} className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Upload PDF Answer
             </label>
-            <input
-              type="file"
-              id={`file-input-${question.id}`}
-              accept="application/pdf"
-              onChange={handleFileChange}
-              className="mt-1 block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded file:border-0
-                file:text-sm file:font-semibold
-                file:bg-blue-50 file:text-blue-700
-                hover:file:bg-blue-100"
-              disabled={isSubmitting || success}
-            />
-            {file && (
-              <p className="mt-2 text-sm text-gray-600">
-                Selected file: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-              </p>
+            
+            {file ? (
+              <div className="border rounded-lg p-3 bg-green-50 border-green-200 mb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FilePdfOutlined className="text-red-500 mr-2" />
+                    <div>
+                      <div className="text-sm font-medium truncate max-w-xs">
+                        {file.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleRemoveFile}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <DeleteOutlined />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center">
+                <label
+                  htmlFor={`file-input-${question.id}`}
+                  className="cursor-pointer block"
+                >
+                  <FileTextOutlined className="text-2xl text-gray-400 mb-1" />
+                  <div className="text-sm mb-1">Click to upload PDF file</div>
+                  <p className="text-xs text-gray-500">PDF files only, max 10MB</p>
+                  <input
+                    type="file"
+                    id={`file-input-${question.id}`}
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    disabled={isSubmitting || success}
+                  />
+                </label>
+              </div>
             )}
           </div>
           
+          {/* Error message display */}
           {error && (
             <div className="mb-3 text-sm text-red-600 bg-red-50 p-3 rounded-md border border-red-100">
-              {error}
+              <span>⚠️ {error}</span>
             </div>
           )}
           
-          <button
-            type="submit"
-            className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!file || isSubmitting || success}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Answer'}
-          </button>
-        </form>
+          {/* Submit button */}
+          {showSubmitButton && (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!file || isSubmitting || success}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Answer'}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
