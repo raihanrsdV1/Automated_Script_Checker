@@ -1,0 +1,30 @@
+.reports-module-container {
+  padding: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.reports-controls-card {
+  margin-bottom: 20px;
+}
+
+.reports-tabs {
+  margin-top: 16px;
+}
+
+.filter-card {
+  margin-bottom: 16px;
+}
+
+.results-table {
+  margin-top: 16px;
+}
+
+.chart-card {
+  margin-bottom: 16px;
+}

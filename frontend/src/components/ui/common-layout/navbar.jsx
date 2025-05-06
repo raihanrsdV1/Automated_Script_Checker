@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Bell, House, Puzzle, ChartNoAxesCombined, Video, NotebookText, ChevronDown, FileCode2, ClipboardCheck, BookOpen } from 'lucide-react';
-import '../../../styles/navbar.css';
+import './style.css';
 import UserProfile from "../user-profile";
 import brain from "../../../assets/logo.png";
 import profile_new from "../../../assets/profile_new.svg";
-import { getCurrentUser } from '../../../api/auth';
 
 const getActiveMenuItem = (pathname) => {
   if (pathname.includes('/dashboard')) return 'Dashboard';
@@ -53,18 +52,15 @@ const PrimaryNav = ({ profile }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
   useEffect(() => {
-    const fetchUserRole = async () => {
-      try {
-        const userData = await getCurrentUser();
-        setUserRole(userData.role || 'student');
-      } catch (error) {
-        console.error('Error fetching user role:', error);
-        setUserRole('student'); // Default to student if error
-      }
-    };
-    
-    fetchUserRole();
-  }, []);
+    // Check if the role is stored in localStorage (for demo purposes)
+    const storedRole = localStorage.getItem('userRole');
+    if (storedRole) {
+      setUserRole(storedRole);
+    } else {
+      // Otherwise use the profile role or default to student
+      setUserRole(profile?.role || 'student');
+    }
+  }, [profile]);
 
   // Define menu items based on user role
   const studentMenuItems = [
@@ -85,6 +81,14 @@ const PrimaryNav = ({ profile }) => {
 
   const handleMenuClick = (link) => {
     navigate(link);
+  };
+
+  const handleRoleToggle = (newRole) => {
+    setUserRole(newRole);
+    localStorage.setItem('userRole', newRole);
+    
+    // Navigate to the appropriate dashboard based on the new role
+    navigate('/dashboard');
   };
 
   return (
@@ -119,17 +123,17 @@ const PrimaryNav = ({ profile }) => {
           {/* User Profile */}
           <div className="user-profile-div" onClick={() => setIsProfileOpen(!isProfileOpen)}>
             <img className="user-profile-pic" src={profile ? profile.image : profile_new} alt="Profile" />
-            <span className="user-name">{profile ? profile.name : ""}</span>
+            <span className="user-name">{profile ? profile.name : "User"}</span>
             <span className="user-role">{userRole === 'teacher' ? 'Teacher' : 'Student'}</span>
             <ChevronDown 
-            absoluteStrokeWidth
-            size={18}
-            strokeWidth={2.25}
-            color={'#777777'}
-            style={{
+              absoluteStrokeWidth
+              size={18}
+              strokeWidth={2.25}
+              color={'#777777'}
+              style={{
                 transform: isProfileOpen ? "rotate(180deg)" : "rotate(0deg)",
                 transition: "transform 0.3s ease"
-            }}
+              }}
             />
           </div>
         </div>
@@ -138,10 +142,11 @@ const PrimaryNav = ({ profile }) => {
       {isProfileOpen && (
         <div style={{ position: "absolute", right: "12px", top: "60px", zIndex: "1000" }}>
           <UserProfile
-            name={profile ? profile.name : "Elizabeth Olsen"}
-            email={profile?.email || "elizabetholsen@gmail.com"}
+            name={profile ? profile.name : "User"}
+            email={profile?.email || "user@example.com"}
             avatarUrl={profile ? profile.image : profile_new}
             role={userRole}
+            onRoleToggle={handleRoleToggle}
           />
         </div>
       )}

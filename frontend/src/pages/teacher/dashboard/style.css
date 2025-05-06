@@ -1,0 +1,27 @@
+.teacher-dashboard {
+  padding: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.stats-cards {
+  margin: 20px 0;
+}
+
+.dashboard-charts {
+  margin: 20px 0;
+}
+
+.chart-card {
+  height: 100%;
+  margin-bottom: 16px;
+}
+
+.tests-table-card {
+  margin-bottom: 20px;
+}

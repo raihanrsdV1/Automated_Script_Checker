@@ -4,7 +4,7 @@ import google from "../../../assets/google-icon.svg"
 import fb from "../../../assets/facebook-icon.svg"
 import { Eye, EyeOff, Mail} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { showToast2 } from "../../../App.jsx";
+import { showToast } from "../../../App.jsx";
 import { login as apiLogin } from "../../../api/auth.js";
 
 const LoginForm = ({ onSubmit }) => {
@@ -20,7 +20,7 @@ const LoginForm = ({ onSubmit }) => {
 
   const loginClick = async () => {
     if (!email || !password) {
-      showToast2("Please enter valid email and password", "error");
+      showToast("Please enter valid email and password", "error");
       return;
     }
     
@@ -36,10 +36,10 @@ const LoginForm = ({ onSubmit }) => {
       localStorage.setItem("user_id", user_id);
       localStorage.setItem("role", role);
       
-      showToast2("Successfully logged in!", "success");
+      showToast("Successfully logged in!", "success");
       navigate("/user-dashboard");
     } catch (err) {
-      showToast2(err.message || "Login failed, please try again", "error");
+      showToast(err.message || "Login failed, please try again", "error");
     } finally {
       setLoading(false);
     }

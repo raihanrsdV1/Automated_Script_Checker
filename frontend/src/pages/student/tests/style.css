@@ -1,0 +1,274 @@
+.tests-list-container {
+  padding: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.tests-tabs {
+  margin-top: 20px;
+}
+
+.tests-grid {
+  margin-top: 16px;
+  width: 1000px;
+  /* Add Grid properties below */
+  display: grid; /* Enable Grid layout */
+  grid-template-columns: repeat(3, 1fr); /* Create 3 columns, each taking an equal fraction (1fr) of the available space */
+  gap: 20px; /* Add a gap of 20px between rows and columns */
+  /* You can adjust the gap value (e.g., 16px, 30px) as needed */
+
+  /* Optional: Center the 1000px wide grid if it's in a wider container */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.test-card {
+  /* min-width: 300px; - This might not be strictly necessary when using 1fr on a fixed 1000px width, as 1fr will calculate a width ~320px (1000 - 2*20) / 3 = 320, but you can keep it if you like */
+  transition: all 0.3s;
+  /* You might add padding, borders, or background colors here to style the cards visually */
+  border: 1px solid #ddd; /* Example: add a light border */
+  padding: 15px; /* Example: add internal spacing */
+  border-radius: 8px; /* Example: rounded corners */
+  background-color: #fff; /* Example: white background */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Example: subtle shadow */
+  min-width: 300px;
+}
+
+.test-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.test-card-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.test-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.test-card-header h4 {
+  margin: 0;
+  line-height: 1.2;
+  margin-right: 8px;
+}
+
+.test-description {
+  margin-bottom: 16px;
+  flex-grow: 1;
+}
+
+.test-info {
+  margin-bottom: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.info-item span[role="img"] {
+  margin-right: 8px;
+}
+
+.view-details-btn {
+  padding: 0;
+  align-self: flex-start;
+}
+
+.test-details-modal {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.test-details-info {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 4px;
+}
+
+.details-info-item {
+  flex: 1;
+  min-width: 150px;
+  margin-bottom: 8px;
+}
+
+.questions-preview {
+  margin-top: 16px;
+}
+
+.question-preview-card {
+  margin-bottom: 10px;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* New styles for the test-taking interface */
+.test-taking-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.test-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.test-header h3 {
+  margin: 0;
+  margin-left: 12px;
+  font-size: 24px;
+  color: #262626;
+}
+
+.test-meta {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid #f0f0f0;
+}
+
+.test-meta .ant-tag {
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.test-meta .ant-typography {
+  color: #595959;
+  line-height: 1.5;
+}
+
+.test-meta p {
+  margin-bottom: 8px;
+}
+
+.test-questions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.test-questions-title {
+  margin: 0;
+  font-size: 20px;
+  color: #262626;
+}
+
+.test-question-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s;
+}
+
+.test-question-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.test-question-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 12px;
+}
+
+.test-question-content {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.test-question-rubric {
+  background-color: #f0f7ff;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #1890ff;
+  margin-bottom: 16px;
+}
+
+.test-submission-form {
+  margin-top: 16px;
+}
+
+.file-upload-container {
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  transition: border-color 0.3s;
+  cursor: pointer;
+}
+
+.file-upload-container:hover {
+  border-color: #1890ff;
+}
+
+.file-upload-container input[type="file"] {
+  display: none;
+}
+
+.evaluation-status {
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.back-to-tests-btn {
+  display: flex;
+  align-items: center;
+  color: #1890ff;
+  font-size: 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.back-to-tests-btn:hover {
+  color: #40a9ff;
+}
+
+.back-to-tests-btn span {
+  margin-right: 8px;
+}

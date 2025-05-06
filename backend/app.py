@@ -10,6 +10,7 @@ from auth import login, register
 from questions import create as create_q, retrieve as retrieve_q, update as update_q, delete as delete_q, question_set as question_set_q  # Import the new question set router
 from submissions import submit as submit_s, retrieve as retrieve_s, recheck as recheck_s
 from subjects import subjects_router  # Import the new subjects router
+from tests import router as tests_router  # Import the new tests router
 from database.db_connection import connect # Fix import to use connect instead of get_db_connection
 # from utils.auth import verify_token # Commented out as auth is disabled for now
 from utils.error_handler import http_exception_handler
@@ -69,6 +70,9 @@ app.include_router(question_set_q.router, prefix="/api/questions", tags=["Questi
 
 # Subject Management Routes
 app.include_router(subjects_router, prefix="/api", tags=["Subjects"]) #, dependencies=[Depends(verify_token)])
+
+# Test Management Routes
+app.include_router(tests_router, prefix="/api/tests", tags=["Tests"]) #, dependencies=[Depends(verify_token)])
 
 # Submission Management Routes (Protected - Auth Disabled)
 app.include_router(submit_s.router, prefix="/api/submissions", tags=["Submissions"]) #, dependencies=[Depends(verify_token)])

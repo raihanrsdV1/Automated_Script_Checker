@@ -17,3 +17,4 @@ requests>=2.31.0 # For HTTP requests
 aiofiles>=23.2.1 # For async file operations
 asyncio>=3.4.3 # For asynchronous programming
 logging>=0.4.9.6 # For improved logging
+aiohttp>=3.9.0 # For async HTTP requests to LLM API

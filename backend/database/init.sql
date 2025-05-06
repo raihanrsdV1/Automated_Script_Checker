@@ -5,9 +5,10 @@
 DROP TABLE IF EXISTS "recheck" CASCADE;
 DROP TABLE IF EXISTS evaluation_detail CASCADE; -- New table for detailed question evaluations
 DROP TABLE IF EXISTS submission CASCADE;
-DROP TABLE IF EXISTS evaluated_script CASCADE;
+DROP TABLE IF EXISTS evaluation CASCADE; -- Renamed from evaluated_script
 DROP TABLE IF EXISTS question_set_mapping CASCADE; -- New table for question set mappings
 DROP TABLE IF EXISTS question_set CASCADE; -- New table for question sets
+DROP TABLE IF EXISTS rubric CASCADE; -- Added new rubric table
 DROP TABLE IF EXISTS question CASCADE;
 DROP TABLE IF EXISTS student CASCADE;
 DROP TABLE IF EXISTS teacher CASCADE;
@@ -16,7 +17,6 @@ DROP TABLE IF EXISTS class CASCADE;
 DROP TABLE IF EXISTS subject CASCADE;
 DROP TABLE IF EXISTS "user" CASCADE;
 DROP TABLE IF EXISTS test_table CASCADE; -- Added drop for test_table
-
 
 -- Create User table
 CREATE TABLE "user" (
@@ -49,15 +49,13 @@ CREATE TABLE class (
 -- Create Student table
 CREATE TABLE student (
     user_id UUID PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
-    current_class_id UUID NOT NULL REFERENCES class(id),
-    subject_id UUID NOT NULL REFERENCES subject(id)
+    current_class_id UUID NOT NULL REFERENCES class(id)
 );
 
 -- Create Teacher table
 CREATE TABLE teacher (
     user_id UUID PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
     designation TEXT NOT NULL,
-    subject_id UUID NOT NULL REFERENCES subject(id)
 );
 
 -- Create Moderator table
@@ -67,20 +65,34 @@ CREATE TABLE moderator (
 );
 
 -- Create Question table
+-- Removed marks and question_rubric, added teacher_id
 CREATE TABLE question (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     subject_id UUID NOT NULL REFERENCES subject(id),
+    teacher_id UUID NOT NULL REFERENCES teacher(user_id),
     question_text TEXT NOT NULL,
-    question_rubric TEXT NOT NULL,
-    marks NUMERIC NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create Rubric table
+CREATE TABLE rubric (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    question_id UUID NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    rubric_text TEXT NOT NULL,
+    marks NUMERIC NOT NULL,
+    serial_number INT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(question_id, serial_number)
 );
 
 -- Create Question Set table
+-- Added teacher_id as requested
 CREATE TABLE question_set (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     description TEXT,
     subject_id UUID NOT NULL REFERENCES subject(id),
+    teacher_id UUID NOT NULL REFERENCES teacher(user_id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -93,43 +105,37 @@ CREATE TABLE question_set_mapping (
     UNIQUE(question_set_id, question_id)
 );
 
--- Create Evaluated Script table
-CREATE TABLE evaluated_script (
+-- Create Evaluation table (renamed from evaluated_script)
+-- Updated with fields from TODO comment
+
+CREATE TABLE evaluation (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    result NUMERIC NOT NULL,
-    detailed_result TEXT NOT NULL,
+    student_id UUID NOT NULL REFERENCES student(user_id),
+    question_id UUID NOT NULL REFERENCES question(id),
+    question_set_id UUID REFERENCES question_set(id),
+    answer_text TEXT,
+    answer_pdf_url TEXT NOT NULL,
+    evaluation_status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (evaluation_status IN ('pending', 'completed', 'failed')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create Evaluation Detail table
+-- Updated to reference rubric_id and use proper field name for obtained_marks
 CREATE TABLE evaluation_detail (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    evaluation_id UUID NOT NULL REFERENCES evaluated_script(id) ON DELETE CASCADE,
-    question_id UUID NOT NULL REFERENCES question(id),
-    result NUMERIC NOT NULL,
+    evaluation_id UUID NOT NULL REFERENCES evaluation(id) ON DELETE CASCADE,
+    rubric_id UUID NOT NULL REFERENCES rubric(id),
+    obtained_marks NUMERIC NOT NULL,
     detailed_result TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create Submission table
-CREATE TABLE submission (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    student_id UUID NOT NULL REFERENCES "user"(id),
-    question_id UUID NOT NULL REFERENCES question(id),
-    question_set_id UUID REFERENCES question_set(id),
-    solution_pdf_url TEXT NOT NULL,
-    solution_text TEXT,
-    evaluated BOOLEAN DEFAULT FALSE,
-    result NUMERIC DEFAULT 0,
-    feedback TEXT,
-    evaluation_id UUID REFERENCES evaluated_script(id),
+    serial_number INT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create Recheck table
+-- Updated to reference evaluation_id instead of submission_id
 CREATE TABLE "recheck" (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    submission_id UUID NOT NULL REFERENCES submission(id) ON DELETE CASCADE,
+    evaluation_id UUID NOT NULL REFERENCES evaluation(id) ON DELETE CASCADE,
     issue_detail TEXT NOT NULL,
     response_detail TEXT,
     responser_id UUID REFERENCES "user"(id),

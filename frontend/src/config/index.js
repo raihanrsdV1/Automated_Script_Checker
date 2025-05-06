@@ -11,8 +11,13 @@ export const API_CONFIG = {
   TIMEOUT: import.meta.env.VITE_API_TIMEOUT || 30000, // Default timeout in ms
 };
 
+// Export API_URL directly from API_CONFIG to ensure consistency
+export const API_URL = API_CONFIG.BASE_URL;
+
 // Authentication Configuration
 export const AUTH_CONFIG = {
+  tokenKey: 'token',
+  userKey: 'user',
   TOKEN_KEY: 'auth_token',
   USER_KEY: 'user_info',
   REFRESH_TOKEN_KEY: 'refresh_token',

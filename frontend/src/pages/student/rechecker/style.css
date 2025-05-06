@@ -1,0 +1,29 @@
+.rechecker-module-container {
+  padding: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.rechecker-table-card {
+  margin-top: 20px;
+}
+
+.recheck-alert {
+  margin: 20px 0;
+}
+
+.recheck-modal-content {
+  margin-top: 10px;
+}
+
+.recheck-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}

@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "antd": "^5.24.9",
     "axios": "^1.9.0",
     "better-react-mathjax": "^2.3.0",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "katex": "^0.16.22",
     "lucide-react": "^0.507.0",
     "react": "^18.2.0",
@@ -19,7 +22,8 @@
     "react-katex": "^3.0.1",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.5.3",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "recharts": "^2.15.3"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

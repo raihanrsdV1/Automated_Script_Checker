@@ -3,7 +3,7 @@ import '../../../styles/LoginForm.css';
 import google from "../../../assets/google-icon.svg"
 import fb from "../../../assets/facebook-icon.svg"
 import { Eye, EyeOff, Mail} from 'lucide-react';
-import { showToast2 } from "../../../App";
+import { showToast } from "../../../App";
 import { register as apiRegister } from "../../../api/auth"; 
 import { useNavigate } from 'react-router-dom';
 
@@ -33,22 +33,22 @@ const RegForm = () => {
     
     // Form validation
     if (!firstName || !lastName || !email || !password || !password2) {
-      showToast2('Please fill all required fields', 'error');
+      showToast('Please fill all required fields', 'error');
       return;
     }
     
     if (!emailRegex.test(email)) {
-      showToast2('Please enter a valid email address', 'error');
+      showToast('Please enter a valid email address', 'error');
       return;
     }
     
     if (password !== password2) {
-      showToast2('Passwords do not match', 'error');
+      showToast('Passwords do not match', 'error');
       return;
     }
     
     if (password.length < 6) {
-      showToast2('Password must be at least 6 characters', 'error');
+      showToast('Password must be at least 6 characters', 'error');
       return;
     }
 
@@ -68,10 +68,10 @@ const RegForm = () => {
       };
     
       const { message } = await apiRegister(payload);
-      showToast2(message, "success");
+      showToast(message, "success");
       navigate("/auth/login");
     } catch (err) {
-      showToast2(err.message || "Registration failed", "error");
+      showToast(err.message || "Registration failed", "error");
     } finally {
       setLoading(false);
     }

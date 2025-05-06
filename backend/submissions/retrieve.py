@@ -1,10 +1,47 @@
-\
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from utils.auth import require_role
 from database.db_connection import connect
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+@router.get("/all", response_model=List[dict])
+async def retrieve_all_submissions(user=Depends(require_role(['teacher', 'moderator']))):
+    """Get all submissions across all students (for teachers and moderators only)"""
+    conn = connect()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute(
+            """
+            SELECT 
+                *
+            FROM 
+                submission
+            ORDER BY 
+                created_at DESC
+            """
+        )
+        
+        columns = [desc[0] for desc in cur.description]
+        submissions = []
+        for row in cur.fetchall():
+            submission = {}
+            for i, column in enumerate(columns):
+                submission[column] = row[i]
+            submissions.append(submission)
+            
+        return submissions
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve all submissions: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve all submissions: {str(e)}")
+    finally:
+        cur.close()
 
 @router.get("/{student_id}", response_model=List[dict])
 async def retrieve_submissions(student_id: str, user=Depends(require_role(['student', 'teacher', 'moderator']))):

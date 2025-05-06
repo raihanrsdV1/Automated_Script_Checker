@@ -1,0 +1,41 @@
+.student-dashboard {
+  padding: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.stats-cards {
+  margin: 20px 0;
+}
+
+.stat-card {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.stat-label {
+  margin-top: 5px;
+  color: #8c8c8c;
+}
+
+.chart-section {
+  margin-bottom: 20px;
+}
+
+.chart-card {
+  height: 100%;
+}
+
+.test-history-table {
+  margin-bottom: 20px;
+}

@@ -1,0 +1,163 @@
+.submissions-list-container {
+  padding: 20px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.submissions-table-card {
+  margin-top: 20px;
+}
+
+.drawer-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.submission-meta {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  background-color: #f5f5f5;
+  padding: 16px;
+  border-radius: 4px;
+}
+
+.meta-item {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.meta-icon {
+  margin-right: 8px;
+  color: #1890ff;
+}
+
+.questions-collapse {
+  margin-top: 24px;
+}
+
+.question-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.question-content {
+  padding: 8px 0;
+}
+
+.question-text, .user-answer, .evaluation-result {
+  margin-bottom: 16px;
+}
+
+.evaluation-text ul {
+  margin-top: 8px;
+  padding-left: 16px;
+}
+
+.submission-score {
+  font-size: 16px;
+}
+
+/* New styles for the card view */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.submission-stats-summary {
+  margin-top: 16px;
+}
+
+.stats-summary-card {
+  min-width: 300px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.submission-cards-container {
+  margin-bottom: 24px;
+}
+
+.submission-card {
+  height: 100%;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.submission-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.submission-card-header {
+  margin-bottom: 16px;
+}
+
+.submission-card-header h4 {
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.submission-card-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.progress-score {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.progress-score small {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.submission-stats {
+  display: flex;
+  flex-direction: column;
+}
+
+.submission-stat-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.submission-stat-item .anticon {
+  margin-right: 8px;
+  color: #1890ff;
+}
+
+.submission-card-footer {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.submissions-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}

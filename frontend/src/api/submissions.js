@@ -26,10 +26,21 @@ axios.interceptors.request.use(
 export const fetchUserSubmissions = async () => {
   try {
     const response = await axios.get(`${API_URL}/submissions/user`);
-    return response.data;
+    return response.data.submissions || [];
   } catch (error) {
-    console.error('Error fetching user submissions:', error);
-    throw new Error('Failed to fetch user submissions');
+    // console.error('Error fetching user submissions:', error);
+    // throw new Error('Failed to fetch user submissions');
+  }
+};
+
+// Fetch submissions for a specific test
+export const fetchTestSubmissions = async (testId) => {
+  try {
+    const response = await axios.get(`${API_URL}/submissions/test/${testId}`);
+    return response.data.submissions || [];
+  } catch (error) {
+    console.error(`Error fetching submissions for test ${testId}:`, error);
+    throw new Error('Failed to fetch test submissions');
   }
 };
 
@@ -41,6 +52,20 @@ export const fetchSubmission = async (submissionId) => {
   } catch (error) {
     console.error(`Error fetching submission ${submissionId}:`, error);
     throw new Error('Failed to fetch submission');
+  }
+};
+
+// Create a new test submission (for answering all questions in a test)
+export const submitTestAnswers = async (testId, answers) => {
+  try {
+    const response = await axios.post(`${API_URL}/submissions/test`, {
+      test_id: testId,
+      answers: answers
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error submitting answers for test ${testId}:`, error);
+    throw new Error('Failed to submit test answers');
   }
 };
 
@@ -106,5 +131,16 @@ export const uploadPDFToFirebase = async (file) => {
   } catch (error) {
     console.error('Error uploading PDF to Firebase:', error);
     throw new Error('Failed to upload PDF');
+  }
+};
+
+// Get test results for a specific submission
+export const fetchTestResults = async (submissionId) => {
+  try {
+    const response = await axios.get(`${API_URL}/submissions/${submissionId}/results`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching results for submission ${submissionId}:`, error);
+    throw new Error('Failed to fetch test results');
   }
 };
