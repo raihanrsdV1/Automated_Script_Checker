@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createSubmission, evaluateSubmission } from '../../../api/submissions';
+import { createSubmission, evaluateSubmission, createBatchSubmissions } from '../../../api/submissions';
 import { Button, Alert, Progress, Tooltip } from 'antd';
 import { 
   DeleteOutlined, 
@@ -9,7 +9,7 @@ import {
   FilePdfOutlined
 } from '@ant-design/icons';
 
-function SubmissionForm({ questionSetId, question, onSubmitSuccess, onFileChange, showSubmitButton = true }) {
+function SubmissionForm({ questionSetId, question, onSubmitSuccess, onFileChange, showSubmitButton = true, batchMode = false }) {
   const [file, setFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -44,7 +44,13 @@ function SubmissionForm({ questionSetId, question, onSubmitSuccess, onFileChange
     }
   };
   
+  // Don't attempt individual evaluation in batch mode
   const handleEvaluate = async () => {
+    if (batchMode) {
+      setError('Evaluation is done in batch mode - please use the batch evaluate button');
+      return;
+    }
+    
     if (!submissionId) {
       setError('No submission to evaluate');
       return;
@@ -85,6 +91,16 @@ function SubmissionForm({ questionSetId, question, onSubmitSuccess, onFileChange
       return;
     }
     
+    // In batch mode, just notify parent about ready state - don't submit
+    if (batchMode) {
+      if (onSubmitSuccess) {
+        onSubmitSuccess(question.id, { file: file, status: 'ready' });
+      }
+      setSuccess(true);
+      return;
+    }
+    
+    // Individual submission mode
     setIsSubmitting(true);
     setError(null);
     

@@ -553,6 +553,7 @@ const TestsList = () => {
                     onSubmitSuccess={handleSubmitSuccess}
                     onFileChange={handleFileChange}
                     showSubmitButton={false} // Hide individual submit buttons
+                    batchMode={true} // Enable batch mode behavior
                   />
                 </div>
               ))}

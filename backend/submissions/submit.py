@@ -301,6 +301,8 @@ async def process_batch_submissions(
 ):
     """Background task to process batch submissions without blocking the API response."""
     conn = None
+    evaluation_ids = []  # Collect all evaluation IDs for batch processing
+    
     try:
         conn = connect()
         cur = conn.cursor()
@@ -316,7 +318,7 @@ async def process_batch_submissions(
                 logger.info(f"Uploading PDF to Firebase: {firebase_path}")
                 pdf_link = await upload_file_to_firebase(file_path, firebase_path, "application/pdf")
                 
-                # Extract Text using OCR - but don't wait for it to complete
+                # Extract Text using OCR
                 logger.info(f"Extracting text from PDF: {evaluation_id}")
                 try:
                     answer_text = extract_text_from_pdf(file_path)
@@ -341,8 +343,8 @@ async def process_batch_submissions(
                 )
                 conn.commit()
                 
-                # Schedule LLM evaluation, but don't wait for it
-                asyncio.create_task(trigger_evaluation(evaluation_id))
+                # Add to the list of evaluation IDs for batch processing
+                evaluation_ids.append(evaluation_id)
                 
             except Exception as e:
                 logger.error(f"Error processing submission {evaluation_id}: {str(e)}")
@@ -351,15 +353,13 @@ async def process_batch_submissions(
             # Clean up the file after processing
             if os.path.exists(file_path):
                 os.remove(file_path)
-    except Exception as e:
-        logger.error(f"Batch processing error: {str(e)}")
-    finally:
-        if conn:
-            if cur:
-                cur.close()
-            conn.close()
         
-        # Clean up the temporary directory
+        # Process all evaluations in a single batch if any were successful
+        if evaluation_ids:
+            logger.info(f"Triggering batch evaluation for {len(evaluation_ids)} submissions")
+            asyncio.create_task(trigger_batch_evaluation(evaluation_ids))
+        
+    except Exception as e:
         try:
             shutil.rmtree(temp_dir)
         except Exception as e:
@@ -389,20 +389,30 @@ async def trigger_evaluation(evaluation_id: str):
 
 async def trigger_batch_evaluation(evaluation_ids: List[str]):
     """
-    Trigger LLM evaluation for multiple submissions.
-    This processes them one by one to avoid overloading the system.
+    Trigger LLM evaluation for multiple submissions using batch processing.
+    This function sends all evaluations to the LLM service in a single batch.
     """
     try:
-        from llm.evaluate import evaluate_submission
+        # Import the batch evaluation function
+        from llm.batch_evaluate import evaluate_batch
         
-        for evaluation_id in evaluation_ids:
-            try:
-                logger.info(f"Starting evaluation for submission {evaluation_id}")
-                await evaluate_submission(evaluation_id)
-                logger.info(f"Evaluation completed for submission {evaluation_id}")
-            except Exception as e:
-                logger.error(f"Error evaluating submission {evaluation_id}: {e}")
-                # Continue with the next submission even if one fails
-    except ImportError:
-        logger.warning(f"LLM evaluation module not found, skipping evaluation for {len(evaluation_ids)} submissions")
+        logger.info(f"Starting batch evaluation for {len(evaluation_ids)} submissions")
+        
+        # Just evaluate the batch, no status changes before calling
+        result = await evaluate_batch(evaluation_ids)
+        
+        logger.info(f"Batch evaluation completed: {result['message']}")
+        
+        # Log successful and failed evaluations
+        if 'successful' in result:
+            logger.info(f"Successfully evaluated: {len(result['successful'])} submissions")
+        
+        if 'failed' in result:
+            logger.warning(f"Failed to evaluate: {len(result['failed'])} submissions")
+            for eval_id, error in result['failed'].items():
+                logger.error(f"Evaluation {eval_id} failed: {error}")
+        
+    except Exception as e:
+        logger.error(f"Error in batch evaluation: {e}")
+        # Log the error but don't fail the submission process
 
