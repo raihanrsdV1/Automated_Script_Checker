@@ -2,6 +2,14 @@
   padding: 20px;
 }
 
+.module-header {
+  margin-bottom: 24px;
+}
+
+.header-title {
+  margin-bottom: 16px;
+}
+
 .loading-container {
   display: flex;
   justify-content: center;
@@ -11,10 +19,30 @@
 
 .rechecker-table-card {
   margin-top: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .recheck-alert {
   margin: 20px 0;
+}
+
+.recheck-stats {
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  height: 100%;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.rechecker-tabs {
+  margin-top: 16px;
 }
 
 .recheck-modal-content {
@@ -26,4 +54,94 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 16px;
+}
+
+.submission-detail-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.submission-files {
+  margin: 16px 0;
+}
+
+.recheck-request, .recheck-response {
+  margin: 16px 0;
+}
+
+.success-response {
+  border-left: 4px solid #52c41a;
+}
+
+.neutral-response {
+  border-left: 4px solid #1890ff;
+}
+
+.response-result {
+  margin-top: 16px;
+}
+
+.recheck-timeline {
+  padding: 20px;
+}
+
+.timeline-card {
+  width: 100%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.timeline-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.score-change {
+  font-weight: 500;
+}
+
+.timeline-reviewer {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .rechecker-module-container {
+    padding: 12px;
+  }
+  
+  .timeline-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .stat-card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Animation for status tags */
+.ant-tag-processing .anticon {
+  animation: spin 1.2s infinite linear;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Highlight rows on hover */
+.ant-table-tbody > tr:hover > td {
+  background-color: rgba(24, 144, 255, 0.05) !important;
 }

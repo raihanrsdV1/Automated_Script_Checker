@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 # Import routers and utilities
 from auth import login, register
-from questions import create as create_q, retrieve as retrieve_q, update as update_q, delete as delete_q, question_set as question_set_q  # Import the new question set router
+from questions import create as create_q, retrieve as retrieve_q, update as update_q, delete as delete_q, question_set as question_set_q, reports as reports_q  # Import the new reports router
 from submissions import submit as submit_s, retrieve as retrieve_s, recheck as recheck_s
 from subjects import subjects_router  # Import the new subjects router
 from tests import router as tests_router  # Import the new tests router
@@ -70,7 +70,7 @@ app.include_router(create_q.router, prefix="/api/questions", tags=["Questions"])
 app.include_router(retrieve_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(update_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 app.include_router(delete_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
-
+app.include_router(reports_q.router, prefix="/api/questions", tags=["Questions"]) #, dependencies=[Depends(verify_token)])
 
 # Subject Management Routes
 app.include_router(subjects_router, prefix="/api", tags=["Subjects"]) #, dependencies=[Depends(verify_token)])

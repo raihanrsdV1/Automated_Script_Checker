@@ -1,6 +1,7 @@
 import React from 'react';
 import '../../../styles/QuestionRubric.css';
-import { BookOpen, Edit, Trash, PlusSquare } from 'lucide-react';
+import { BookOpen, Edit, Trash, PlusSquare, Download } from 'lucide-react';
+import axiosInstance from '../../../api/axiosConfig';
 
 export default function QuestionSetCard({ data, onView, onEdit, onDelete, onAddQuestion }) {
   // Extract subject name
@@ -41,6 +42,48 @@ export default function QuestionSetCard({ data, onView, onEdit, onDelete, onAddQ
     onAddQuestion(data.id);
   };
 
+  const handleReportClick = async (e) => {
+    e.stopPropagation();
+    try {
+      // Show loading indicator to user
+      const loadingToast = window.toast?.loading 
+        ? window.toast.loading('Generating report...') 
+        : alert('Generating report, please wait...');
+      
+      // Make API request to download the report
+      const response = await axiosInstance.get(`/questions/sets/${data.id}/report`, {
+        responseType: 'blob' // Important for handling PDF file downloads
+      });
+      
+      // Create a URL for the blob
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${data.name.replace(/\s+/g, '_')}_report.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      // Show success message
+      if (window.toast?.success) {
+        window.toast.success('Report downloaded successfully');
+      }
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      if (window.toast?.error) {
+        window.toast.error('Failed to generate report. Please try again.');
+      } else {
+        alert('Failed to generate report. Please try again.');
+      }
+    }
+  };
+
   return (
     <div className="question-set-card">
       <div className="card-header">
@@ -67,6 +110,10 @@ export default function QuestionSetCard({ data, onView, onEdit, onDelete, onAddQ
         
         <button className="action-btn add" onClick={handleAddQuestionClick} title="Add Questions">
           <PlusSquare size={16} />
+        </button>
+        
+        <button className="action-btn report" onClick={handleReportClick} title="Generate Report">
+          <Download size={16} />
         </button>
         
         <button className="action-btn delete" onClick={handleDeleteClick} title="Delete Question Set">

@@ -463,6 +463,15 @@
   background-color: #c8e6c9;
 }
 
+.action-btn.report {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.action-btn.report:hover {
+  background-color: #ffecb3;
+}
+
 /* Question Set Detail styles */
 .question-set-detail {
   background: white;
