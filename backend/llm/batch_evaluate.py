@@ -13,7 +13,7 @@ from utils.auth import require_role
 logger = logging.getLogger(__name__)
 
 # LLM API endpoint (Kaggle via ngrok)
-LLM_EVALUATE_ENDPOINT = "https://4877-35-188-10-87.ngrok-free.app/evaluate"
+LLM_EVALUATE_ENDPOINT = "https://1d28-34-133-240-35.ngrok-free.app/evaluate"
 
 router = APIRouter()
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Row, Col, Card, Tabs, Typography, Statistic, Divider, Progress, Badge, Space, Alert, Table, Tag } from 'antd';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { DollarSign, TrendingUp, Server, AlertCircle, BarChart2, PieChart as PieChartIcon, Activity, Coins } from 'lucide-react';
+import { DollarSign, TrendingUp, Server, AlertCircle, BarChart2, PieChart as PieChartIcon, Activity, Coins, CreditCard } from 'lucide-react';
 import InfrastructureResources from './InfrastructureResources';
 import MonthlyPerformanceMetrics from './MonthlyPerformanceMetrics';
 
@@ -86,7 +86,7 @@ const FinanceEvaluation = () => {
   };
 
   const formatCurrency = (value) => {
-    return `$${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+    return `${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')} ৳`;
   };
 
   return (
@@ -117,7 +117,7 @@ const FinanceEvaluation = () => {
               <Card>
                 <Statistic
                   title="Initial Investment"
-                  value={15100}
+                  value={2000000}
                   precision={0}
                   valueStyle={{ color: '#cf1322' }}
                   prefix={<DollarSign size={16} />}
@@ -129,7 +129,7 @@ const FinanceEvaluation = () => {
               <Card>
                 <Statistic
                   title="Annual Revenue (Projected)"
-                  value={59900}
+                  value={7500000}
                   precision={0}
                   valueStyle={{ color: '#3f8600' }}
                   prefix={<DollarSign size={16} />}
@@ -172,7 +172,7 @@ const FinanceEvaluation = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => [`$${value}`, '']} />
+                    <Tooltip formatter={(value) => [`${value} ৳`, '']} />
                     <Legend />
                     <Area type="monotone" dataKey="revenue" stackId="1" stroke="#8884d8" fill="#8884d8" name="Revenue" />
                     <Area type="monotone" dataKey="expenses" stackId="2" stroke="#82ca9d" fill="#82ca9d" name="Expenses" />
@@ -239,13 +239,13 @@ const FinanceEvaluation = () => {
                       <Space direction="vertical" style={{ width: '100%' }}>
                         <Badge.Ribbon text="Recommended" color="green">
                           <Card size="small">
-                            <Statistic title="NVIDIA A100 (80GB)" value="$12,000" />
+                            <Statistic title="NVIDIA A100 (80GB)" value="1500000 ৳" />
                             <Paragraph>Processing capacity: ≈10,000 scripts/day</Paragraph>
                             <Progress percent={100} status="active" />
                           </Card>
                         </Badge.Ribbon>
                         <Card size="small">
-                          <Statistic title="RTX 4090 (24GB)" value="$2,000" />
+                          <Statistic title="RTX 4090 (24GB)" value="250000 ৳" />
                           <Paragraph>Processing capacity: ≈3,000 scripts/day</Paragraph>
                           <Progress percent={30} status="active" />
                         </Card>
@@ -255,14 +255,14 @@ const FinanceEvaluation = () => {
                     <Col xs={24} md={8}>
                       <Card type="inner" title="Server Components">
                         <ul style={{ paddingLeft: '20px' }}>
-                          <li>CPU: AMD Threadripper ($1,000)</li>
-                          <li>RAM: 128GB ECC ($800)</li>
-                          <li>SSD: 4TB NVMe ($400)</li>
-                          <li>Motherboard: ($450)</li>
-                          <li>PSU, Cooling, Chassis: ($450)</li>
+                          <li>CPU: AMD Threadripper (৳120000)</li>
+                          <li>RAM: 128GB ECC (৳100000)</li>
+                          <li>SSD: 4TB NVMe (৳50000)</li>
+                          <li>Motherboard: (৳50000)</li>
+                          <li>PSU, Cooling, Chassis: (৳50000)</li>
                         </ul>
                         <Divider />
-                        <Statistic title="Total (excluding GPU)" value="$3,100" />
+                        <Statistic title="Total (excluding GPU)" value="37,00,000 ৳" />
                       </Card>
                     </Col>
                     <Col xs={24} md={8}>
@@ -348,20 +348,20 @@ const FinanceEvaluation = () => {
                   <Row gutter={[16, 16]}>
                     <Col xs={24} md={8}>
                       <Card type="inner" title="Investment">
-                        <Statistic title="High-End Setup (w/ A100)" value="$15,100" />
+                        <Statistic title="High-End Setup (w/ A100)" value="1250000 ৳" />
                         <Divider />
-                        <Statistic title="Mid-Range Setup (w/ RTX 4090)" value="$5,100" />
+                        <Statistic title="Mid-Range Setup (w/ RTX 4090)" value="600000 ৳" />
                       </Card>
                     </Col>
                     <Col xs={24} md={8}>
                       <Card type="inner" title="Annual Operating Expenses">
-                        <Progress percent={16} status="active" strokeColor="#faad14" format={() => '$400'} />
+                        <Progress percent={16} status="active" strokeColor="#faad14" format={() => '50000৳'} />
                         <div>Internet (high-speed, static IP)</div>
-                        <Progress percent={26} status="active" strokeColor="#faad14" format={() => '$650'} />
+                        <Progress percent={26} status="active" strokeColor="#faad14" format={() => '75000৳'} />
                         <div>UPS / Cooling / Maintenance</div>
-                        <Progress percent={50} status="active" strokeColor="#faad14" format={() => '$1,250'} />
+                        <Progress percent={50} status="active" strokeColor="#faad14" format={() => '150000৳'} />
                         <div>Electricity (GPU workload)</div>
-                        <Progress percent={8} status="active" strokeColor="#faad14" format={() => '$225'} />
+                        <Progress percent={8} status="active" strokeColor="#faad14" format={() => '30000 ৳'} />
                         <div>Domain / Hosting / Security</div>
                       </Card>
                     </Col>
@@ -371,10 +371,10 @@ const FinanceEvaluation = () => {
                           <ul>
                             <li>Charge per evaluation: ৳5-10 BDT ($0.05-$0.10)</li>
                             <li>Monthly volume: 50,000 scripts</li>
-                            <li>Monthly revenue: $2,500-$5,000</li>
-                            <li>Annual revenue: $30,000-$60,000</li>
-                            <li>Net profit (Year 1): $12,500-$42,500</li>
-                            <li>ROI (Year 1): 83%-280%</li>
+                            <li>Monthly revenue: 2,500,00 ৳ - 5,00,000 ৳</li>
+                            <li>Annual revenue: 30,00,000 ৳ - 60,00,000 ৳</li>
+                            <li>Net profit (Year 1): 10,00,000 ৳- 25,00,000</li>
+                            <li>ROI (Year 1): 83%-180%</li>
                           </ul>
                         </Paragraph>
                       </Card>
@@ -497,10 +497,10 @@ const FinanceEvaluation = () => {
                       )
                     },
                     { 
-                      title: 'Cost Per Script (USD)', 
+                      title: 'Cost Per Script (৳)', 
                       dataIndex: 'cost', 
                       key: 'cost',
-                      render: (value) => `$${value.toFixed(3)}`,
+                      render: (value) => `${value.toFixed(3)}৳`,
                       sorter: (a, b) => a.cost - b.cost,
                     },
                     { 
@@ -569,11 +569,11 @@ const FinanceEvaluation = () => {
                     <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                       <Statistic
                         title="AI Evaluation Cost"
-                        value={0.06}
+                        value={6}
                         precision={3}
                         valueStyle={{ color: '#3f8600' }}
-                        prefix="$"
-                        suffix="/script"
+                        prefix=""
+                        suffix="৳/script"
                       />
                       <div style={{ marginTop: '10px' }}>
                         <Tag color="green">94% savings</Tag>
@@ -584,11 +584,11 @@ const FinanceEvaluation = () => {
                     <div style={{ textAlign: 'center' }}>
                       <Statistic
                         title="Manual Evaluation Cost"
-                        value={1.00}
+                        value={12}
                         precision={2}
                         valueStyle={{ color: '#cf1322' }}
-                        prefix="$"
-                        suffix="/script"
+                        prefix=""
+                        suffix="৳/script"
                       />
                       <Paragraph style={{ marginTop: '10px' }}>
                         Based on teacher compensation for script evaluation
@@ -687,6 +687,364 @@ const FinanceEvaluation = () => {
                     style={{ maxWidth: '800px', margin: '0 auto' }}
                   />
                 </div>
+              </Card>
+            </Col>
+          </Row>
+        </TabPane>
+        
+        <TabPane tab={<span><CreditCard size={16} style={{ marginRight: '8px' }} />Revenue Streams</span>} key="6">
+          <Row gutter={[16, 16]}>
+            <Col span={24}>
+              <Card>
+                <Alert
+                  message="Payment Model Comparison"
+                  description="Analysis of different revenue models for the AI-based script evaluation system, showing annual revenue, time to recoup investment, and profit margins."
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: '20px' }}
+                />
+                
+                <Tabs defaultActiveKey="comparison" type="card">
+                  <TabPane tab="Model Comparison" key="comparison">
+                    <Row gutter={[16, 16]}>
+                      <Col span={24}>
+                        <Table
+                          dataSource={[
+                            {
+                              key: '1',
+                              model: 'Pay-Per-Script',
+                              description: 'Charge per individual script evaluation (৳7 BDT ≈ $0.07 per script)',
+                              yearlyRevenue: 42000,
+                              breakEven: 4.3,
+                              profitMargin: 68,
+                              bestFor: 'Educational institutions with variable volume; exam seasons',
+                              risk: 'low',
+                            },
+                            {
+                              key: '2',
+                              model: 'Monthly Subscription',
+                              description: 'Fixed monthly fee with tiered usage limits (৳10,000 BDT ≈ $100/month for up to 2,000 scripts)',
+                              yearlyRevenue: 36000,
+                              breakEven: 5.0,
+                              profitMargin: 62,
+                              bestFor: 'Schools and coaching centers with consistent evaluation needs',
+                              risk: 'medium',
+                            },
+                            {
+                              key: '3',
+                              model: 'Annual Contract',
+                              description: 'Yearly contract with volume commitment (৳100,000 BDT ≈ $1,000/year for 20,000 scripts)',
+                              yearlyRevenue: 30000,
+                              breakEven: 6.0,
+                              profitMargin: 58,
+                              bestFor: 'Large educational institutions with predictable yearly needs',
+                              risk: 'medium',
+                            },
+                            {
+                              key: '4',
+                              model: 'Freemium + Premium',
+                              description: 'Basic free service with limited features; premium paid upgrades',
+                              yearlyRevenue: 27000,
+                              breakEven: 6.7,
+                              profitMargin: 55,
+                              bestFor: 'Market penetration; converting free users to paid',
+                              risk: 'high',
+                            },
+                            {
+                              key: '5',
+                              model: 'Hybrid (Pay-Per-Script + Subscription)',
+                              description: 'Low base subscription fee + reduced per-script charges',
+                              yearlyRevenue: 48000,
+                              breakEven: 3.8,
+                              profitMargin: 72,
+                              bestFor: 'Best of both worlds; predictable base revenue with volume scaling',
+                              risk: 'low',
+                            },
+                          ]}
+                          columns={[
+                            {
+                              title: 'Payment Model',
+                              dataIndex: 'model',
+                              key: 'model',
+                              render: (text, record) => (
+                                <div>
+                                  <span style={{ fontWeight: 'bold' }}>{text}</span>
+                                  <div>
+                                    <Tag color={
+                                      record.risk === 'low' ? 'green' : 
+                                      record.risk === 'medium' ? 'orange' : 'red'
+                                    }>
+                                      {record.risk.charAt(0).toUpperCase() + record.risk.slice(1)} Risk
+                                    </Tag>
+                                  </div>
+                                </div>
+                              ),
+                            },
+                            {
+                              title: 'Description',
+                              dataIndex: 'description',
+                              key: 'description',
+                            },
+                            {
+                              title: 'Annual Revenue (USD)',
+                              dataIndex: 'yearlyRevenue',
+                              key: 'yearlyRevenue',
+                              render: (value) => `$${value.toLocaleString()}`,
+                              sorter: (a, b) => a.yearlyRevenue - b.yearlyRevenue,
+                            },
+                            {
+                              title: 'Break-Even (Months)',
+                              dataIndex: 'breakEven',
+                              key: 'breakEven',
+                              render: (value) => (
+                                <div>
+                                  <Progress 
+                                    percent={Math.min(100, (value/12)*100)} 
+                                    size="small"
+                                    format={() => `${value} months`}
+                                    strokeColor={{
+                                      '0%': '#108ee9',
+                                      '100%': '#87d068',
+                                    }}
+                                  />
+                                </div>
+                              ),
+                              sorter: (a, b) => a.breakEven - b.breakEven,
+                            },
+                            {
+                              title: 'Profit Margin (%)',
+                              dataIndex: 'profitMargin',
+                              key: 'profitMargin',
+                              render: (value) => (
+                                <div>
+                                  <Progress 
+                                    percent={value}
+                                    size="small"
+                                    format={() => `${value}%`}
+                                    strokeColor={value > 70 ? '#52c41a' : value > 60 ? '#1890ff' : '#faad14'}
+                                  />
+                                </div>
+                              ),
+                              sorter: (a, b) => a.profitMargin - b.profitMargin,
+                            },
+                            {
+                              title: 'Best For',
+                              dataIndex: 'bestFor',
+                              key: 'bestFor',
+                            },
+                          ]}
+                          pagination={false}
+                        />
+                      </Col>
+                    </Row>
+                  </TabPane>
+                  
+                  <TabPane tab="Annual Revenue Projection" key="revenue">
+                    <Row gutter={[16, 16]}>
+                      <Col span={24}>
+                        <ResponsiveContainer width="100%" height={400}>
+                          <BarChart
+                            data={[
+                              { year: '2025', payPerScript: 42000, subscription: 36000, annual: 30000, freemium: 27000, hybrid: 48000 },
+                              { year: '2026', payPerScript: 63000, subscription: 54000, annual: 48000, freemium: 45000, hybrid: 72000 },
+                              { year: '2027', payPerScript: 84000, subscription: 72000, annual: 66000, freemium: 72000, hybrid: 96000 },
+                              { year: '2028', payPerScript: 105000, subscription: 90000, annual: 84000, freemium: 108000, hybrid: 120000 },
+                              { year: '2029', payPerScript: 126000, subscription: 108000, annual: 102000, freemium: 135000, hybrid: 144000 },
+                            ]}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="year" />
+                            <YAxis />
+                            <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                            <Legend />
+                            <Bar dataKey="payPerScript" name="Pay-Per-Script" fill="#8884d8" />
+                            <Bar dataKey="subscription" name="Monthly Subscription" fill="#82ca9d" />
+                            <Bar dataKey="annual" name="Annual Contract" fill="#ffc658" />
+                            <Bar dataKey="freemium" name="Freemium + Premium" fill="#ff8042" />
+                            <Bar dataKey="hybrid" name="Hybrid Model" fill="#0088FE" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </Col>
+                    </Row>
+                  </TabPane>
+                  
+                  <TabPane tab="Break-Even Timeline" key="breakeven">
+                    <Row gutter={[16, 16]}>
+                      <Col span={24}>
+                        <ResponsiveContainer width="100%" height={400}>
+                          <LineChart
+                            data={[
+                              { month: 1, payPerScript: 3500, subscription: 3000, annual: 2500, freemium: 2250, hybrid: 4000, initialCost: 15100 },
+                              { month: 2, payPerScript: 7000, subscription: 6000, annual: 5000, freemium: 4500, hybrid: 8000, initialCost: 15100 },
+                              { month: 3, payPerScript: 10500, subscription: 9000, annual: 7500, freemium: 6750, hybrid: 12000, initialCost: 15100 },
+                              { month: 4, payPerScript: 14000, subscription: 12000, annual: 10000, freemium: 9000, hybrid: 16000, initialCost: 15100 },
+                              { month: 5, payPerScript: 17500, subscription: 15000, annual: 12500, freemium: 11250, hybrid: 20000, initialCost: 15100 },
+                              { month: 6, payPerScript: 21000, subscription: 18000, annual: 15000, freemium: 13500, hybrid: 24000, initialCost: 15100 },
+                              { month: 7, payPerScript: 24500, subscription: 21000, annual: 17500, freemium: 15750, hybrid: 28000, initialCost: 15100 },
+                              { month: 8, payPerScript: 28000, subscription: 24000, annual: 20000, freemium: 18000, hybrid: 32000, initialCost: 15100 },
+                              { month: 9, payPerScript: 31500, subscription: 27000, annual: 22500, freemium: 20250, hybrid: 36000, initialCost: 15100 },
+                            ]}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" label={{ value: 'Month', position: 'insideBottom', offset: -5 }} />
+                            <YAxis />
+                            <Tooltip formatter={(value, name) => [`$${value.toLocaleString()}`, name === 'initialCost' ? 'Initial Investment' : name]} />
+                            <Legend />
+                            <Line type="monotone" dataKey="initialCost" name="Initial Investment" stroke="#ff0000" strokeWidth={2} strokeDasharray="5 5" />
+                            <Line type="monotone" dataKey="payPerScript" name="Pay-Per-Script" stroke="#8884d8" strokeWidth={2} />
+                            <Line type="monotone" dataKey="subscription" name="Monthly Subscription" stroke="#82ca9d" strokeWidth={2} />
+                            <Line type="monotone" dataKey="annual" name="Annual Contract" stroke="#ffc658" strokeWidth={2} />
+                            <Line type="monotone" dataKey="freemium" name="Freemium + Premium" stroke="#ff8042" strokeWidth={2} />
+                            <Line type="monotone" dataKey="hybrid" name="Hybrid Model" stroke="#0088FE" strokeWidth={2} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                        <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                          <Alert 
+                            message="Break-Even Analysis" 
+                            description="The Hybrid model reaches break-even fastest at 3.8 months, followed by Pay-Per-Script at 4.3 months. The Freemium model takes longest at 6.7 months." 
+                            type="info" 
+                            showIcon 
+                          />
+                        </div>
+                      </Col>
+                    </Row>
+                  </TabPane>
+                  
+                  <TabPane tab="Profit Margin Analysis" key="profit">
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} md={12}>
+                        <Card title="Yearly Profit Margin by Model (%)">
+                          <ResponsiveContainer width="100%" height={300}>
+                            <LineChart
+                              data={[
+                                { year: '2025', payPerScript: 68, subscription: 62, annual: 58, freemium: 55, hybrid: 72 },
+                                { year: '2026', payPerScript: 72, subscription: 66, annual: 62, freemium: 60, hybrid: 75 },
+                                { year: '2027', payPerScript: 75, subscription: 69, annual: 65, freemium: 65, hybrid: 78 },
+                                { year: '2028', payPerScript: 77, subscription: 72, annual: 68, freemium: 70, hybrid: 80 },
+                                { year: '2029', payPerScript: 79, subscription: 74, annual: 70, freemium: 72, hybrid: 82 },
+                              ]}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="year" />
+                              <YAxis domain={[50, 85]} />
+                              <Tooltip formatter={(value) => `${value}%`} />
+                              <Legend />
+                              <Line type="monotone" dataKey="payPerScript" name="Pay-Per-Script" stroke="#8884d8" activeDot={{ r: 8 }} />
+                              <Line type="monotone" dataKey="subscription" name="Monthly Subscription" stroke="#82ca9d" activeDot={{ r: 8 }} />
+                              <Line type="monotone" dataKey="annual" name="Annual Contract" stroke="#ffc658" activeDot={{ r: 8 }} />
+                              <Line type="monotone" dataKey="freemium" name="Freemium + Premium" stroke="#ff8042" activeDot={{ r: 8 }} />
+                              <Line type="monotone" dataKey="hybrid" name="Hybrid Model" stroke="#0088FE" activeDot={{ r: 8 }} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </Card>
+                      </Col>
+                      
+                      <Col xs={24} md={12}>
+                        <Card title="Year 1 Revenue vs. Cost Breakdown">
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart
+                              data={[
+                                { model: 'Pay-Per-Script', revenue: 42000, fixedCosts: 2525, variableCosts: 10915, profit: 28560 },
+                                { model: 'Subscription', revenue: 36000, fixedCosts: 2525, variableCosts: 11155, profit: 22320 },
+                                { model: 'Annual', revenue: 30000, fixedCosts: 2525, variableCosts: 10075, profit: 17400 },
+                                { model: 'Freemium', revenue: 27000, fixedCosts: 2525, variableCosts: 9625, profit: 14850 },
+                                { model: 'Hybrid', revenue: 48000, fixedCosts: 2525, variableCosts: 10915, profit: 34560 },
+                              ]}
+                              layout="vertical"
+                              margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis type="number" />
+                              <YAxis type="category" dataKey="model" />
+                              <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                              <Legend />
+                              <Bar dataKey="profit" stackId="a" fill="#82ca9d" name="Profit" />
+                              <Bar dataKey="fixedCosts" stackId="a" fill="#8884d8" name="Fixed Costs" />
+                              <Bar dataKey="variableCosts" stackId="a" fill="#ffc658" name="Variable Costs" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </Card>
+                      </Col>
+                      
+                      <Col span={24}>
+                        <Card title="Payment Model Details">
+                          <Row gutter={[16, 16]}>
+                            <Col xs={24} md={8}>
+                              <Badge.Ribbon text="Recommended" color="green">
+                                <Card type="inner" title="Hybrid Model">
+                                  <Paragraph>
+                                    <strong>Structure:</strong> ৳1,000 BDT monthly base fee + ৳5 BDT per script
+                                  </Paragraph>
+                                  <Paragraph>
+                                    <strong>Benefits:</strong>
+                                    <ul>
+                                      <li>Predictable base revenue</li>
+                                      <li>Scales with usage volume</li>
+                                      <li>Highest profit margin (72%)</li>
+                                      <li>Fastest break-even (3.8 months)</li>
+                                    </ul>
+                                  </Paragraph>
+                                  <Paragraph>
+                                    <strong>Target:</strong> Schools and coaching centers of all sizes
+                                  </Paragraph>
+                                </Card>
+                              </Badge.Ribbon>
+                            </Col>
+                            
+                            <Col xs={24} md={8}>
+                              <Card type="inner" title="Pay-Per-Script Model">
+                                <Paragraph>
+                                  <strong>Structure:</strong> ৳7 BDT per script evaluated
+                                </Paragraph>
+                                <Paragraph>
+                                  <strong>Benefits:</strong>
+                                  <ul>
+                                    <li>No commitment required</li>
+                                    <li>Pay only for what you use</li>
+                                    <li>Strong profit margin (68%)</li>
+                                    <li>Quick break-even (4.3 months)</li>
+                                  </ul>
+                                </Paragraph>
+                                <Paragraph>
+                                  <strong>Target:</strong> Institutions with variable or seasonal needs
+                                </Paragraph>
+                              </Card>
+                            </Col>
+                            
+                            <Col xs={24} md={8}>
+                              <Card type="inner" title="Volume Discounts">
+                                <Paragraph>
+                                  <strong>Structure:</strong> Tiered pricing based on volume
+                                </Paragraph>
+                                <Table
+                                  size="small"
+                                  pagination={false}
+                                  dataSource={[
+                                    { tier: '1-5,000 scripts', price: '৳7.0 BDT' },
+                                    { tier: '5,001-15,000 scripts', price: '৳6.5 BDT' },
+                                    { tier: '15,001-30,000 scripts', price: '৳6.0 BDT' },
+                                    { tier: '30,001-50,000 scripts', price: '৳5.5 BDT' },
+                                    { tier: '50,001+ scripts', price: '৳5.0 BDT' },
+                                  ]}
+                                  columns={[
+                                    { title: 'Monthly Volume', dataIndex: 'tier', key: 'tier' },
+                                    { title: 'Price Per Script', dataIndex: 'price', key: 'price' },
+                                  ]}
+                                />
+                                <div style={{ marginTop: '10px' }}>
+                                  <Text type="secondary">Applicable to both Pay-Per-Script and Hybrid models</Text>
+                                </div>
+                              </Card>
+                            </Col>
+                          </Row>
+                        </Card>
+                      </Col>
+                    </Row>
+                  </TabPane>
+                </Tabs>
               </Card>
             </Col>
           </Row>
