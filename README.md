@@ -26,7 +26,7 @@ The Automated Script Checker is designed to help educators automatically grade a
 cd backend
 pip install -r requirements.txt
 # Configure your .env file (see backend/README.md)
-python app.py
+uvicorn app:app --reload --host 0.0.0.0 --port 3000
 ```
 
 See [Backend README](/backend/README.md) for detailed configuration instructions, including PostgreSQL database setup.
