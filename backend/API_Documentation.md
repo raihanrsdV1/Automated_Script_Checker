@@ -645,9 +645,11 @@ Refer to the provided SQL schema for detailed table definitions.
    - On macOS: `brew install texlive`
 
 4. **Set Up the Database**:
+      See [Backend README](/backend/database/README.md) for more detailed procedure
    - Run the SQL script to create tables and insert sample data:
      ```bash
-     sqlite3 question_sets.db < schema.sql
+     cd backend
+     python database/init_db.py
      ```
 
 5. **Run the Application**:
