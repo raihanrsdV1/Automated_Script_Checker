@@ -16,6 +16,7 @@ import TestsList from './pages/student/tests';
 import SubmissionsList from './pages/student/submissions';
 import RecheckerModule from './pages/student/rechecker';
 import ReportsModule from './pages/teacher/reports';
+import FinanceEvaluation from './pages/finance';
 
 // Toast utility functions
 export const showToast = (message, type) => {
@@ -179,6 +180,9 @@ function App() {
         {/* Teacher Routes */}
         <Route path="/question-rubric-setup" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><CommonLayout><QuestionRubricSetup /></CommonLayout></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><CommonLayout><ReportsModule /></CommonLayout></ProtectedRoute>} />
+        
+        {/* Finance Routes */}
+        <Route path="/finance" element={<ProtectedRoute allowedRoles={['student']}><CommonLayout><FinanceEvaluation /></CommonLayout></ProtectedRoute>} />
         
         {/* Legacy Routes - will redirect to new structure */}
         <Route path="/user-dashboard" element={<Navigate to="/dashboard" replace />} />
