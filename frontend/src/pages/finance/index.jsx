@@ -121,7 +121,7 @@ const FinanceEvaluation = () => {
                   precision={0}
                   valueStyle={{ color: '#cf1322' }}
                   prefix={<DollarSign size={16} />}
-                  suffix="USD"
+                  suffix=""
                 />
               </Card>
             </Col>
@@ -133,7 +133,7 @@ const FinanceEvaluation = () => {
                   precision={0}
                   valueStyle={{ color: '#3f8600' }}
                   prefix={<DollarSign size={16} />}
-                  suffix="USD"
+                  suffix=""
                 />
               </Card>
             </Col>
@@ -141,11 +141,11 @@ const FinanceEvaluation = () => {
               <Card>
                 <Statistic
                   title="Operational Expenses"
-                  value={2525}
+                  value={252500}
                   precision={0}
                   valueStyle={{ color: '#faad14' }}
                   prefix={<DollarSign size={16} />}
-                  suffix="USD/yr"
+                  suffix="৳/yr"
                 />
               </Card>
             </Col>
@@ -153,7 +153,7 @@ const FinanceEvaluation = () => {
               <Card>
                 <Statistic
                   title="ROI (Year 1)"
-                  value={280}
+                  value={180}
                   precision={0}
                   valueStyle={{ color: '#3f8600' }}
                   prefix={<TrendingUp size={16} />}
